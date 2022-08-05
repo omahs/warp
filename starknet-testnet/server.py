@@ -40,7 +40,7 @@ async def pingpost():
 async def deploy():
     data = request.get_json()
     state = await starknet_wrapper.get_state()
-    input = [int(x) for x in data["input"]]
+    input = [int(x,0) for x in data["input"]]
     compiled_cairo = open(data["compiled_cairo"]).read()
     contract_def: ContractClass = ContractClass.loads(compiled_cairo)
 
@@ -122,7 +122,7 @@ async def invoke():
         execution_info = await state.invoke_raw(
             contract_address=data["address"],
             selector=data["function"],
-            calldata=[int(x) for x in data["input"]],
+            calldata=[int(x, 0) for x in data["input"]],
             caller_address=int(data["caller_address"], 0),
             max_fee=0,
         )

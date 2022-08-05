@@ -1,0 +1,293 @@
+[
+  {
+    "members": [
+      {
+        "name": "low",
+        "offset": 0,
+        "type": "felt"
+      },
+      {
+        "name": "high",
+        "offset": 1,
+        "type": "felt"
+      }
+    ],
+    "name": "Uint256",
+    "size": 2,
+    "type": "struct"
+  },
+  {
+    "data": [
+      {
+        "name": "__warp_usrid3_owner",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid4_spender",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid5_value",
+        "type": "Uint256"
+      }
+    ],
+    "keys": [],
+    "name": "Approval_8c5be1e5",
+    "type": "event"
+  },
+  {
+    "data": [
+      {
+        "name": "__warp_usrid0_from",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid1_to",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid2_value",
+        "type": "Uint256"
+      }
+    ],
+    "keys": [],
+    "name": "Transfer_ddf252ad",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "name_06fdde03",
+    "outputs": [
+      {
+        "name": "__warp_usrid7__len",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid7_",
+        "type": "felt*"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "symbol_95d89b41",
+    "outputs": [
+      {
+        "name": "__warp_usrid8__len",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid8_",
+        "type": "felt*"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "decimals_313ce567",
+    "outputs": [
+      {
+        "name": "__warp_usrid9_",
+        "type": "felt"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalSupply_18160ddd",
+    "outputs": [
+      {
+        "name": "__warp_usrid10_",
+        "type": "Uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "name": "__warp_usrid11_account",
+        "type": "felt"
+      }
+    ],
+    "name": "balanceOf_70a08231",
+    "outputs": [
+      {
+        "name": "__warp_usrid12_",
+        "type": "Uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "name": "__warp_usrid13_to",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid14_amount",
+        "type": "Uint256"
+      }
+    ],
+    "name": "transfer_a9059cbb",
+    "outputs": [
+      {
+        "name": "__warp_usrid15_",
+        "type": "felt"
+      }
+    ],
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "name": "__warp_usrid20_spender",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid21_amount",
+        "type": "Uint256"
+      }
+    ],
+    "name": "approve_095ea7b3",
+    "outputs": [
+      {
+        "name": "__warp_usrid22_",
+        "type": "felt"
+      }
+    ],
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "name": "__warp_usrid24_from",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid25_to",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid26_amount",
+        "type": "Uint256"
+      }
+    ],
+    "name": "transferFrom_23b872dd",
+    "outputs": [
+      {
+        "name": "__warp_usrid27_",
+        "type": "felt"
+      }
+    ],
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "name": "__warp_usrid29_spender",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid30_addedValue",
+        "type": "Uint256"
+      }
+    ],
+    "name": "increaseAllowance_39509351",
+    "outputs": [
+      {
+        "name": "__warp_usrid31_",
+        "type": "felt"
+      }
+    ],
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "name": "__warp_usrid33_spender",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid34_subtractedValue",
+        "type": "Uint256"
+      }
+    ],
+    "name": "decreaseAllowance_a457c2d7",
+    "outputs": [
+      {
+        "name": "__warp_usrid35_",
+        "type": "felt"
+      }
+    ],
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "name": "__warp_usrid42_account",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid43_amount",
+        "type": "Uint256"
+      }
+    ],
+    "name": "mint_40c10f19",
+    "outputs": [],
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "name": "__warp_usrid5_name__len",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid5_name_",
+        "type": "felt*"
+      },
+      {
+        "name": "__warp_usrid6_symbol__len",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid6_symbol_",
+        "type": "felt*"
+      }
+    ],
+    "name": "constructor",
+    "outputs": [],
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "name": "__warp_usrid17_owner",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid18_spender",
+        "type": "felt"
+      }
+    ],
+    "name": "allowance_dd62ed3e",
+    "outputs": [
+      {
+        "name": "__warp_usrid19_",
+        "type": "Uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

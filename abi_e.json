@@ -1,0 +1,25 @@
+[
+  {
+    "inputs": [
+      {
+        "name": "__warp_usrid0_x_len",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid0_x",
+        "type": "felt*"
+      },
+      {
+        "name": "__warp_usrid1_y_len",
+        "type": "felt"
+      },
+      {
+        "name": "__warp_usrid1_y",
+        "type": "felt*"
+      }
+    ],
+    "name": "constructor",
+    "outputs": [],
+    "type": "constructor"
+  }
+]
