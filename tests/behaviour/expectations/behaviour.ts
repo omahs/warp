@@ -6,25 +6,64 @@ export const expectations = flatten(
     new Dir('behaviour', [
       new Dir('contracts', [
         new Dir('uniSwapTests', [
-          new File(
-            'ERC20',
-            'ERC20',
-            [
-              '6',
-              '0x54',
-              '0x4f',
-              '0x4b',
-              '0x45',
-              '0x4e',
-              '0x30',
-              '4',
-              '0x54',
-              '0x4f',
-              '0x4b',
-              '0x30',
-            ],
-            [],
-          ),
+          new Dir('Tokens', [
+            new File(
+              'Token0',
+              'ERC20',
+              [
+                '6',
+                '0x54',
+                '0x4f',
+                '0x4b',
+                '0x45',
+                '0x4e',
+                '0x30',
+                '4',
+                '0x54',
+                '0x4f',
+                '0x4b',
+                '0x30',
+              ],
+              [],
+            ),
+            new File(
+              'Token1',
+              'ERC20',
+              [
+                '6',
+                '0x54',
+                '0x4f',
+                '0x4b',
+                '0x45',
+                '0x4e',
+                '0x31',
+                '4',
+                '0x54',
+                '0x4f',
+                '0x4b',
+                '0x31',
+              ],
+              [],
+            ),
+          ]),
+          new Dir('Uniswap', [
+            new File(
+              'UniswapV3Factory',
+              'UniswapV3Factory',
+              [],
+              [
+                Expect.Simple(
+                  'createPool',
+                  [
+                    'address@tests/behaviour/contracts/uniSwapTests/Tokens/Token0.ERC20',
+                    'address@tests/behaviour/contracts/uniSwapTests/Tokens/Token1.ERC20',
+                    '10000',
+                  ],
+                  [],
+                ),
+              ],
+            ),
+          ]),
         ]),
         new Dir('abstractContracts', [
           File.Simple('mappingInConstructor', [
