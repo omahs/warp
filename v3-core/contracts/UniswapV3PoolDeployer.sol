@@ -38,26 +38,29 @@ contract UniswapV3PoolDeployer is IUniswapV3PoolDeployer {
 
     /// warp-cairo
     /// func CURRENTFUNC(){
-    ///    range_check_ptr,
-    ///    bitwise_ptr: BitwiseBuiltin*,
-    ///    warp_memory: DictAccess*,
-    ///    keccak_ptr: felt*,
+    ///    pedersen_ptr: HashBuiltin*,
+    ///    range_check_ptr: felt
     ///}(
     ///     token0 : felt,
     ///     token1 : felt,
     ///     fee : felt,
     /// ) -> (res: Uint256):
-    ///     from warplib.memory import wm_new, wm_write_felt
-    ///     let (arr) = wm_new(Uint256(3, 0), Uint256(1,0))
-    ///     wm_write_felt(arr + 2, token0)
-    ///     wm_write_felt(arr + 3, token1)
-    ///     wm_write_felt(arr + 4, fee)
-    ///     let (res) = warp_keccak(arr)
+    ///     from starkware.cairo.common.hash import hash2
+    ///     from warplib.maths.utils import felt_to_uint256
+    ///     #from warplib.memory import wm_new, wm_write_felt
+    ///     let (hash_res_1) = hash2{hash_ptr=pedersen_ptr}(token0, token1)
+    ///     let (hash_res_2) = hash2{hash_ptr=pedersen_ptr}(hash_res_1, fee)
+    ///     let (res: Uint256) = felt_to_uint256(hash_res_2)
+    ///     #let (arr) = wm_new(Uint256(3, 0), Uint256(1,0))
+    ///     #wm_write_felt(arr + 2, token0)
+    ///     #wm_write_felt(arr + 3, token1)
+    ///     #wm_write_felt(arr + 4, fee)
+    ///     #let (res) = warp_keccak(arr)
     ///     return (res)
     ///end
     function hash_stub_1(address token0, address token1, uint24 fee) internal view returns (bytes32) {
-        bytes memory x = new bytes(0);
-        keccak256(x);
+        // bytes memory x = new bytes(0);
+        // keccak256(x);
         return 0;
     }
 }
