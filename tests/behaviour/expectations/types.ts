@@ -10,6 +10,7 @@ export class AsyncTest {
     public constructorArgs: Promise<string[]> | string[],
     public expectations: Promise<Expect[]> | Expect[],
     public encodingError?: string,
+    public cache?: Map<string, string[]>,
   ) {}
 
   get sol() {

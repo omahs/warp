@@ -52,15 +52,20 @@ export const expectations = flatten(
               'UniswapV3Factory',
               [],
               [
-                Expect.Simple(
-                  'createPool',
+                new Expect('Testing Pool Creation', [
                   [
-                    'address@tests/behaviour/contracts/uniSwapTests/Tokens/Token0.ERC20',
-                    'address@tests/behaviour/contracts/uniSwapTests/Tokens/Token1.ERC20',
-                    '10000',
+                    'createPool',
+                    [
+                      'address@tests/behaviour/contracts/uniSwapTests/Tokens/Token0.ERC20',
+                      'address@tests/behaviour/contracts/uniSwapTests/Tokens/Token1.ERC20',
+                      '10000',
+                    ],
+                    [
+                      '3564242703444893914481118573660697669751996038996649976144025799144982695059',
+                    ],
+                    '0',
                   ],
-                  [],
-                ),
+                ]),
               ],
             ),
           ]),

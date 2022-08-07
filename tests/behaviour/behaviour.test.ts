@@ -30,6 +30,7 @@ const TIME_LIMIT = 2 * 60 * 60 * 1000;
 interface AsyncTestCluster {
   asyncTest: AsyncTest;
   dependencies: Map<string, string[]>;
+  cache: Map<string, string[]>;
 }
 
 describe('Transpile solidity', function () {
