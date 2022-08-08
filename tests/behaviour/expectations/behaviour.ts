@@ -1,3 +1,4 @@
+import { encodePriceSqrt } from '../../util';
 import { Dir, Expect, File } from './types';
 import { flatten } from './utils';
 
@@ -63,9 +64,24 @@ export const expectations = flatten(
                     [
                       '3564242703444893914481118573660697669751996038996649976144025799144982695059',
                     ],
-                    '0',
+                    '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
                     undefined,
-                    '@cachepoolAddress',
+                    'cache@poolAddress',
+                  ],
+                ]),
+              ],
+            ),
+            new File(
+              'TestPool',
+              'TestPool',
+              [],
+              [
+                new Expect('Testing Pool Initialization', [
+                  [
+                    'initialize_',
+                    ['cache@poolAddress', encodePriceSqrt('1', '2')],
+                    [],
+                    '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
                   ],
                 ]),
               ],

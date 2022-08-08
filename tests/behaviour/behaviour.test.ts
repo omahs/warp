@@ -254,7 +254,7 @@ async function behaviourTest(
     const replaced_inputs = processArgs(name, inputs, deployedAddresses);
     const replaced_expectedResult =
       expectedResult !== null ? processArgs(name, expectedResult, deployedAddresses) : null;
-
+    console.log(`${inputs} - These are the inputs`);
     if (funcName === 'constructor') {
       // Failing tests for constructor
       const response = await deploy(fileTest.compiled, replaced_inputs);

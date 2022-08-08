@@ -27,9 +27,6 @@ async function deployPool() {
     erc20_address!,
     '500',
   ]);
-  console.log('Pool successfully deployed');
-
-  console.log(pool.return_data![0]);
 }
 
 console.log('Running script');

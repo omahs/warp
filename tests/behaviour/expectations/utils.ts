@@ -13,7 +13,10 @@ export function flatten(test: Dir | File): File[] {
 
 function stringFlatten_(val: Value): string[] {
   if (typeof val === 'string' || typeof val === 'number') {
-    if (typeof val === 'string' && (val.startsWith('address@') || val.startsWith('hash@')))
+    if (
+      typeof val === 'string' &&
+      (val.startsWith('address@') || val.startsWith('hash@') || val.startsWith('cache@'))
+    )
       return [val];
     return [BigInt(val).toString()];
   }

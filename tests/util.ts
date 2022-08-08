@@ -3,6 +3,7 @@ import * as path from 'path';
 import assert from 'assert';
 import { exec } from 'child_process';
 import { expect } from 'chai';
+import BigNumber from 'bignumber.js';
 
 export async function sh(cmd: string): Promise<{ stdout: string; stderr: string }> {
   return new Promise(function (resolve, reject) {
@@ -85,6 +86,7 @@ export function processArgs(
   args: string[],
   deployedAddresses: Map<string, { address: string; hash: string }>,
 ): string[] {
+  console.log('In the process args');
   return args.flatMap((arg) => {
     if (arg.startsWith('address@')) {
       arg = arg.replace('address@', '');
@@ -108,7 +110,7 @@ export function processArgs(
       if (value === undefined) {
         expect.fail(`${name} failed, cannot find value in cache ${arg}`);
       }
-      return BigInt(value.address).toString();
+      return value.address;
     }
     return arg;
   });
@@ -122,4 +124,14 @@ export function hashToUint256(hash: string): [string, string] {
   const high = bigintHash / 2n ** 128n;
   const low = bigintHash % 2n ** 128n;
   return [low.toString(10), high.toString(10)];
+}
+// returns the sqrt price as a 64x96
+export function encodePriceSqrt(reserve1: string, reserve0: string): string {
+  const x = new BigNumber(reserve1)
+    .div(reserve0)
+    .sqrt()
+    .multipliedBy(new BigNumber(2).pow(96))
+    .integerValue(3)
+    .toString(16);
+  return x;
 }
