@@ -64,6 +64,8 @@ export const expectations = flatten(
                       '3564242703444893914481118573660697669751996038996649976144025799144982695059',
                     ],
                     '0',
+                    undefined,
+                    '@cachepoolAddress',
                   ],
                 ]),
               ],

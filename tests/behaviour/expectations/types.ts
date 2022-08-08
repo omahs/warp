@@ -54,6 +54,7 @@ export class Expect {
     returns: string[] | null,
     caller_address: string,
     error_message?: string,
+    cache?: string,
   ][];
   constructor(
     public name: string,
@@ -63,9 +64,10 @@ export class Expect {
       returns: Value[] | null,
       caller_address: string,
       error_message?: string,
+      cache?: string,
     ][],
   ) {
-    this.steps = steps.map(([func, inputs, returns, caller_address, error_message]) => {
+    this.steps = steps.map(([func, inputs, returns, caller_address, error_message, cache]) => {
       if (func === 'constructor')
         assert(
           returns === null,
@@ -77,6 +79,7 @@ export class Expect {
         returns !== null ? stringFlatten(returns) : null,
         caller_address,
         error_message,
+        cache,
       ];
     });
   }

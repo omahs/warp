@@ -246,6 +246,7 @@ async function behaviourTest(
     expectedResult,
     caller_address,
     error_message,
+    cache,
   ] of functionExpectation.steps) {
     const name = functionExpectation.name;
     const mangledFuncName =
@@ -270,7 +271,13 @@ async function behaviourTest(
       }
 
       expect(response.status, `${name} - Unhandled starknet-testnet error`).to.equal(200);
-
+      if (cache !== undefined && response !== undefined) {
+        deployedAddresses.set(cache, {
+          address: response.return_data![0],
+          hash: '',
+        });
+        console.log(`Returned Address - ${response.return_data![0]}`);
+      }
       if (expectedResult === null) {
         expect(response.threw, `${name} - Function should throw`).to.be.true;
         error_message !== undefined &&

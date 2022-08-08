@@ -102,6 +102,13 @@ export function processArgs(
       const low = BigInt(value.hash) % 2n ** 128n;
       const high = BigInt(value.hash) / 2n ** 128n;
       return [low.toString(), high.toString()];
+    } else if (arg.startsWith('cache@')) {
+      arg = arg.replace('cache@', '');
+      const value = deployedAddresses.get(arg);
+      if (value === undefined) {
+        expect.fail(`${name} failed, cannot find value in cache ${arg}`);
+      }
+      return BigInt(value.address).toString();
     }
     return arg;
   });
