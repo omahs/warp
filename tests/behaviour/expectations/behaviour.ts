@@ -61,12 +61,26 @@ export const expectations = flatten(
                       'address@tests/behaviour/contracts/uniSwapTests/Tokens/Token1.ERC20',
                       '10000',
                     ],
-                    [
-                      '3564242703444893914481118573660697669751996038996649976144025799144982695059',
-                    ],
+                    [],
                     '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
                     undefined,
                     'cache@poolAddress',
+                  ],
+                ]),
+              ],
+            ),
+            new File(
+              'TestTickMath',
+              'TestTickMath',
+              [],
+              [
+                new Expect('debuggggging', [
+                  [
+                    'f',
+                    //encodePriceSqrt(500,1)
+                    ['0x' + '165c55827df1d1b1b7000b80d6'],
+                    ['62149'],
+                    '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
                   ],
                 ]),
               ],
@@ -79,7 +93,7 @@ export const expectations = flatten(
                 new Expect('Testing Pool Initialization', [
                   [
                     'initialize_',
-                    ['cache@poolAddress', encodePriceSqrt('1', '2')],
+                    ['cache@poolAddress', '0x' + encodePriceSqrt('1', '1')],
                     [],
                     '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
                   ],

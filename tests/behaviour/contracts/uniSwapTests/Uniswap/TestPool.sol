@@ -2,7 +2,7 @@ pragma solidity ^0.8.0;
 
 import './interfaces/pool/IUniswapV3PoolActions.sol';
 
-contract UniPoolTest {
+contract TestPool {
 
     function initialize_(address addr, uint160 sqrtPrice) external {
         IUniswapV3PoolActions(addr).initialize(sqrtPrice);

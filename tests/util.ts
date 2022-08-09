@@ -86,7 +86,6 @@ export function processArgs(
   args: string[],
   deployedAddresses: Map<string, { address: string; hash: string }>,
 ): string[] {
-  console.log('In the process args');
   return args.flatMap((arg) => {
     if (arg.startsWith('address@')) {
       arg = arg.replace('address@', '');
@@ -105,8 +104,9 @@ export function processArgs(
       const high = BigInt(value.hash) / 2n ** 128n;
       return [low.toString(), high.toString()];
     } else if (arg.startsWith('cache@')) {
-      arg = arg.replace('cache@', '');
       const value = deployedAddresses.get(arg);
+      console.log(deployedAddresses.keys());
+      console.log(`Args found ${arg}`);
       if (value === undefined) {
         expect.fail(`${name} failed, cannot find value in cache ${arg}`);
       }
