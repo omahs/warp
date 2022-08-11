@@ -186,7 +186,11 @@ describe('Compiled contracts are deployable', function () {
     it(expectations[i].name, async function () {
       // const response = await deployResults[i];
       const response = deployResults[i];
-      if (response === null) {
+      if (
+        deployedAddresses.get(`${expectations[i].name}.${expectations[i].contract}`) !== undefined
+      ) {
+        this.skip();
+      } else if (response === null) {
         this.skip();
       } else {
         expect(response.threw, 'Deploy request failed').to.be.false;
@@ -254,7 +258,7 @@ async function behaviourTest(
     const replaced_inputs = processArgs(name, inputs, deployedAddresses);
     const replaced_expectedResult =
       expectedResult !== null ? processArgs(name, expectedResult, deployedAddresses) : null;
-    console.log(`${inputs} - These are the inputs`);
+    // console.log(`${inputs} - These are the inputs`);
     if (funcName === 'constructor') {
       // Failing tests for constructor
       const response = await deploy(fileTest.compiled, replaced_inputs);
@@ -276,7 +280,7 @@ async function behaviourTest(
           address: response.return_data![0],
           hash: '',
         });
-        console.log(`Returned Address - ${response.return_data![0]}`);
+        // console.log(`Returned Address - ${response.return_data![0]}`);
       }
       if (expectedResult === null) {
         expect(response.threw, `${name} - Function should throw`).to.be.true;

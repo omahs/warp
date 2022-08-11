@@ -105,8 +105,8 @@ export function processArgs(
       return [low.toString(), high.toString()];
     } else if (arg.startsWith('cache@')) {
       const value = deployedAddresses.get(arg);
-      console.log(deployedAddresses.keys());
-      console.log(`Args found ${arg}`);
+      // console.log(deployedAddresses.keys());
+      // console.log(`Args found ${arg}`);
       if (value === undefined) {
         expect.fail(`${name} failed, cannot find value in cache ${arg}`);
       }

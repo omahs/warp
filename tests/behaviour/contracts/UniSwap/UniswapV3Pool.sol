@@ -453,7 +453,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         int24 tickLower,
         int24 tickUpper,
         uint128 amount,
-        bytes calldata data
+        address sender
     ) external override lock returns (uint256 amount0, uint256 amount1) {
         require(amount > 0);
         (, int256 amount0Int, int256 amount1Int) =
@@ -473,7 +473,8 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         uint256 balance1Before;
         if (amount0 > 0) balance0Before = balance0();
         if (amount1 > 0) balance1Before = balance1();
-        IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(amount0, amount1, data);
+        IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(amount0, amount1, sender);
+        // IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(amount0, amount1, data);
         if (amount0 > 0) require(balance0Before.add(amount0) <= balance0(), 'M0');
         if (amount1 > 0) require(balance1Before.add(amount1) <= balance1(), 'M1');
 
@@ -601,7 +602,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         bool zeroForOne,
         int256 amountSpecified,
         uint160 sqrtPriceLimitX96,
-        bytes calldata data
+        address sender
     ) external override noDelegateCall returns (int256 amount0, int256 amount1) {
         require(amountSpecified != 0, 'AS');
 
@@ -789,13 +790,13 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             if (amount1 < 0) TransferHelper.safeTransfer(token1, recipient, uint256(-amount1));
 
             uint256 balance0Before = balance0();
-            IUniswapV3SwapCallback(msg.sender).uniswapV3SwapCallback(amount0, amount1, data);
+            IUniswapV3SwapCallback(msg.sender).uniswapV3SwapCallback(amount0, amount1, sender);
             require(balance0Before.add(uint256(amount0)) <= balance0(), 'IIA');
         } else {
             if (amount0 < 0) TransferHelper.safeTransfer(token0, recipient, uint256(-amount0));
 
             uint256 balance1Before = balance1();
-            IUniswapV3SwapCallback(msg.sender).uniswapV3SwapCallback(amount0, amount1, data);
+            IUniswapV3SwapCallback(msg.sender).uniswapV3SwapCallback(amount0, amount1, sender);
             require(balance1Before.add(uint256(amount1)) <= balance1(), 'IIA');
         }
 
@@ -856,7 +857,9 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         address recipient,
         uint256 amount0,
         uint256 amount1,
-        bytes calldata data
+        address sender,
+        uint256 pay0,
+        uint256 pay1
     ) external override lock noDelegateCall {
         uint128 _liquidity = liquidity;
         require(_liquidity > 0, 'L');
@@ -869,7 +872,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         if (amount0 > 0) TransferHelper.safeTransfer(token0, recipient, amount0);
         if (amount1 > 0) TransferHelper.safeTransfer(token1, recipient, amount1);
 
-        IUniswapV3FlashCallback(msg.sender).uniswapV3FlashCallback(fee0, fee1, data);
+        IUniswapV3FlashCallback(msg.sender).uniswapV3FlashCallback(fee0, fee1, sender, pay0, pay1);
 
         uint256 balance0After = balance0();
         uint256 balance1After = balance1();
@@ -899,8 +902,10 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
             if (uint128(fees1) > 0) protocolFees.token1 += uint128(fees1);
             feeGrowthGlobal1X128 += FullMath.mulDiv(paid1 - fees1, FixedPoint128.Q128, _liquidity);
         }
-
-        emit Flash(msg.sender, recipient, amount0, amount1, paid0, paid1);
+        
+        
+        // emit Flash(msg.sender, recipient, amount0, amount1, paid0, paid1);
+        
     }
 
     /// @inheritdoc IUniswapV3PoolOwnerActions

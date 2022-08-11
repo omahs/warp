@@ -6,101 +6,129 @@ export const expectations = flatten(
   new Dir('tests', [
     new Dir('behaviour', [
       new Dir('contracts', [
-        new Dir('uniSwapTests', [
-          new Dir('Tokens', [
-            new File(
-              'Token0',
-              'ERC20',
-              [
-                '6',
-                '0x54',
-                '0x4f',
-                '0x4b',
-                '0x45',
-                '0x4e',
-                '0x30',
-                '4',
-                '0x54',
-                '0x4f',
-                '0x4b',
-                '0x30',
-              ],
-              [],
-            ),
-            new File(
-              'Token1',
-              'ERC20',
-              [
-                '6',
-                '0x54',
-                '0x4f',
-                '0x4b',
-                '0x45',
-                '0x4e',
-                '0x31',
-                '4',
-                '0x54',
-                '0x4f',
-                '0x4b',
-                '0x31',
-              ],
-              [],
-            ),
-          ]),
-          new Dir('Uniswap', [
-            new File(
-              'UniswapV3Factory',
-              'UniswapV3Factory',
-              [],
-              [
-                new Expect('Testing Pool Creation', [
+        new Dir('UniSwap', [
+          //Creating Tokens/Miniting
+          File.Simple(
+            'TestERC20_0',
+            [
+              Expect.Simple(
+                'mint',
+                [
+                  '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
+                  '1000000',
+                  '0',
+                ],
+                [],
+              ),
+              Expect.Simple(
+                'balanceOf',
+                ['0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c'],
+                ['1000000', '0'],
+              ),
+            ],
+            'TestERC20',
+          ),
+          File.Simple(
+            'TestERC20_1',
+            [
+              Expect.Simple(
+                'mint',
+                [
+                  '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
+                  '1000000',
+                  '0',
+                ],
+                [],
+              ),
+              Expect.Simple(
+                'balanceOf',
+                ['0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c'],
+                ['1000000', '0'],
+              ),
+            ],
+            'TestERC20',
+          ),
+          //Creating Factory and Initializing
+          new File(
+            'UniswapV3Factory',
+            'UniswapV3Factory',
+            [],
+            [
+              new Expect('Testing Pool Creation', [
+                [
+                  'createPool',
                   [
-                    'createPool',
-                    [
-                      'address@tests/behaviour/contracts/uniSwapTests/Tokens/Token0.ERC20',
-                      'address@tests/behaviour/contracts/uniSwapTests/Tokens/Token1.ERC20',
-                      '10000',
-                    ],
-                    [],
-                    '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
-                    undefined,
+                    'address@tests/behaviour/contracts/UniSwap/TestERC20_1.TestERC20',
+                    'address@tests/behaviour/contracts/UniSwap/TestERC20_0.TestERC20',
+                    '500',
+                  ],
+                  [],
+                  '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
+                  undefined,
+                  'cache@poolAddress',
+                ],
+              ]),
+            ],
+          ),
+          new File(
+            'TestPoolInitialize',
+            'TestPoolInitialize',
+            [],
+            [
+              new Expect('Testing Pool Initialization', [
+                [
+                  'initialize_',
+                  // Can be 1,1
+                  ['cache@poolAddress', '0x' + encodePriceSqrt('1', '10')],
+                  [],
+                  '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
+                ],
+              ]),
+              Expect.Simple('slot0_', ['cache@poolAddress'], []),
+              Expect.Simple('liquidity_', ['cache@poolAddress'], []),
+            ],
+          ),
+          //Approving Uniswap to Take Tokens
+          File.Simple(
+            'TestERC20_1',
+            [
+              Expect.Simple('approve', ['cache@poolAddress', '1000000', '0'], []),
+              // Check for allowance
+            ],
+            'TestERC20',
+          ),
+          File.Simple(
+            'TestERC20_0',
+            [
+              Expect.Simple('approve', ['cache@poolAddress', '1000000', '0'], []),
+              // Check for allowance
+            ],
+            'TestERC20',
+          ),
+          //Minting position
+          new File(
+            'TestUniswapV3Callee',
+            'TestUniswapV3Callee',
+            [],
+            [
+              new Expect('mint', [
+                [
+                  'mint',
+                  [
                     'cache@poolAddress',
-                  ],
-                ]),
-              ],
-            ),
-            new File(
-              'TestTickMath',
-              'TestTickMath',
-              [],
-              [
-                new Expect('debuggggging', [
-                  [
-                    'f',
-                    //encodePriceSqrt(500,1)
-                    ['0x' + '165c55827df1d1b1b7000b80d6'],
-                    ['62149'],
                     '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
+                    '15890216',
+                    '887000',
+                    '3161',
                   ],
-                ]),
-              ],
-            ),
-            new File(
-              'TestPool',
-              'TestPool',
-              [],
-              [
-                new Expect('Testing Pool Initialization', [
-                  [
-                    'initialize_',
-                    ['cache@poolAddress', '0x' + encodePriceSqrt('1', '1')],
-                    [],
-                    '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
-                  ],
-                ]),
-              ],
-            ),
-          ]),
+                  [],
+                  '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
+                ],
+              ]),
+              Expect.Simple('slot0_', ['cache@poolAddress'], []),
+              Expect.Simple('liquidity_', ['cache@poolAddress'], []),
+            ],
+          ),
         ]),
         new Dir('abstractContracts', [
           File.Simple('mappingInConstructor', [
