@@ -16,14 +16,14 @@ import './interfaces/pool/IUniswapV3PoolImmutables.sol';
 contract TestUniswapV3Callee is IUniswapV3MintCallback, IUniswapV3SwapCallback, IUniswapV3FlashCallback {
     using SafeCast for uint256;
 
-    function swapExact0For1(
-        address pool,
-        uint256 amount0In,
-        address recipient,
-        uint160 sqrtPriceLimitX96
-    ) external {
-        IUniswapV3PoolActions(pool).swap(recipient, true, amount0In.toInt256(), sqrtPriceLimitX96, msg.sender);
-    }
+    // function swapExact0For1(
+    //     address pool,
+    //     uint256 amount0In,
+    //     address recipient,
+    //     uint160 sqrtPriceLimitX96
+    // ) external {
+    //     IUniswapV3PoolActions(pool).swap(recipient, true, amount0In.toInt256(), sqrtPriceLimitX96, msg.sender);
+    // }
 
     function swap0ForExact1(
         address pool,
@@ -34,39 +34,39 @@ contract TestUniswapV3Callee is IUniswapV3MintCallback, IUniswapV3SwapCallback, 
        return IUniswapV3PoolActions(pool).swap(recipient, true, -amount1Out.toInt256(), sqrtPriceLimitX96, msg.sender);
     }
 
-    function swapExact1For0(
-        address pool,
-        uint256 amount1In,
-        address recipient,
-        uint160 sqrtPriceLimitX96
-    ) external {
-        IUniswapV3PoolActions(pool).swap(recipient, false, amount1In.toInt256(), sqrtPriceLimitX96, msg.sender);
-    }
+    // function swapExact1For0(
+    //     address pool,
+    //     uint256 amount1In,
+    //     address recipient,
+    //     uint160 sqrtPriceLimitX96
+    // ) external {
+    //     IUniswapV3PoolActions(pool).swap(recipient, false, amount1In.toInt256(), sqrtPriceLimitX96, msg.sender);
+    // }
 
-    function swap1ForExact0(
-        address pool,
-        uint256 amount0Out,
-        address recipient,
-        uint160 sqrtPriceLimitX96
-    ) external {
-        IUniswapV3PoolActions(pool).swap(recipient, false, -amount0Out.toInt256(), sqrtPriceLimitX96, msg.sender);
-    }
+    // function swap1ForExact0(
+    //     address pool,
+    //     uint256 amount0Out,
+    //     address recipient,
+    //     uint160 sqrtPriceLimitX96
+    // ) external {
+    //     IUniswapV3PoolActions(pool).swap(recipient, false, -amount0Out.toInt256(), sqrtPriceLimitX96, msg.sender);
+    // }
 
-    function swapToLowerSqrtPrice(
-        address pool,
-        uint160 sqrtPriceX96,
-        address recipient
-    ) external {
-        IUniswapV3PoolActions(pool).swap(recipient, true, type(int256).max, sqrtPriceX96, msg.sender);
-    }
+    // function swapToLowerSqrtPrice(
+    //     address pool,
+    //     uint160 sqrtPriceX96,
+    //     address recipient
+    // ) external {
+    //     IUniswapV3PoolActions(pool).swap(recipient, true, type(int256).max, sqrtPriceX96, msg.sender);
+    // }
 
-    function swapToHigherSqrtPrice(
-        address pool,
-        uint160 sqrtPriceX96,
-        address recipient
-    ) external {
-        IUniswapV3PoolActions(pool).swap(recipient, false, type(int256).max, sqrtPriceX96, msg.sender);
-    }
+    // function swapToHigherSqrtPrice(
+    //     address pool,
+    //     uint160 sqrtPriceX96,
+    //     address recipient
+    // ) external {
+    //     IUniswapV3PoolActions(pool).swap(recipient, false, type(int256).max, sqrtPriceX96, msg.sender);
+    // }
 
     event SwapCallback(int256 amount0Delta, int256 amount1Delta);
 

@@ -148,7 +148,7 @@ describe('Transpiled contracts are valid cairo', function () {
       if (res.result === null) {
         this.skip();
       } else {
-        expect(res.result, `starknet-compile printed errors: ${res.result}`).to.include({
+        expect(res.result, `starknet-compile  printed errors: ${res.result}`).to.include({
           stderr: '',
         });
         expect(fs.existsSync(expectations[i].compiled), 'Compilation failed').to.be.true;
