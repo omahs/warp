@@ -7,6 +7,8 @@ export const expectations = flatten(
     new Dir('behaviour', [
       new Dir('contracts', [
         new Dir('UniSwap', [
+          // Creating Callee Contract Because it needs approval.
+          new File('TestUniswapV3Callee', 'TestUniswapV3Callee', [], []),
           //Creating Tokens/Miniting
           File.Simple(
             'TestERC20_0',
@@ -15,7 +17,7 @@ export const expectations = flatten(
                 'mint',
                 [
                   '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
-                  '1000000',
+                  '1000000000',
                   '0',
                 ],
                 [],
@@ -23,7 +25,7 @@ export const expectations = flatten(
               Expect.Simple(
                 'balanceOf',
                 ['0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c'],
-                ['1000000', '0'],
+                ['1000000000', '0'],
               ),
             ],
             'TestERC20',
@@ -35,7 +37,7 @@ export const expectations = flatten(
                 'mint',
                 [
                   '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
-                  '1000000',
+                  '1000000000',
                   '0',
                 ],
                 [],
@@ -43,7 +45,7 @@ export const expectations = flatten(
               Expect.Simple(
                 'balanceOf',
                 ['0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c'],
-                ['1000000', '0'],
+                ['1000000000', '0'],
               ),
             ],
             'TestERC20',
@@ -78,30 +80,65 @@ export const expectations = flatten(
               new Expect('Testing Pool Initialization', [
                 [
                   'initialize_',
-                  // Can be 1,1
-                  ['cache@poolAddress', '0x' + encodePriceSqrt('1', '10')],
+                  // Can be 1,10
+                  ['cache@poolAddress', '0x' + encodePriceSqrt('1', '1')],
                   [],
                   '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
                 ],
               ]),
-              Expect.Simple('slot0_', ['cache@poolAddress'], []),
-              Expect.Simple('liquidity_', ['cache@poolAddress'], []),
             ],
           ),
           //Approving Uniswap to Take Tokens
           File.Simple(
             'TestERC20_1',
             [
-              Expect.Simple('approve', ['cache@poolAddress', '1000000', '0'], []),
-              // Check for allowance
+              new Expect('approve', [
+                [
+                  'approve',
+                  [
+                    'address@tests/behaviour/contracts/UniSwap/TestUniswapV3Callee.TestUniswapV3Callee',
+                    '1000000',
+                    '0',
+                  ],
+                  ['1'],
+                  '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
+                ],
+              ]),
+              Expect.Simple(
+                'allowance',
+                [
+                  '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
+                  'address@tests/behaviour/contracts/UniSwap/TestUniswapV3Callee.TestUniswapV3Callee',
+                ],
+                ['1000000', '0'],
+              ),
             ],
             'TestERC20',
           ),
           File.Simple(
             'TestERC20_0',
             [
-              Expect.Simple('approve', ['cache@poolAddress', '1000000', '0'], []),
-              // Check for allowance
+              new Expect('approve', [
+                [
+                  'approve',
+                  [
+                    'address@tests/behaviour/contracts/UniSwap/TestUniswapV3Callee.TestUniswapV3Callee',
+                    '1000000',
+                    '0',
+                  ],
+                  ['1'],
+                  //'address@tests/behaviour/contracts/UniSwap/TestUniswapV3Callee.TestUniswapV3Callee',
+                  '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
+                ],
+              ]),
+              Expect.Simple(
+                'allowance',
+                [
+                  '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
+                  'address@tests/behaviour/contracts/UniSwap/TestUniswapV3Callee.TestUniswapV3Callee',
+                ],
+                ['1000000', '0'],
+              ),
             ],
             'TestERC20',
           ),
@@ -119,15 +156,55 @@ export const expectations = flatten(
                     '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
                     '15890216',
                     '887000',
-                    '3161',
+                    //'3161',
+                    '10000',
+                  ],
+                  ['10000', '0', '10000', '0'],
+                  '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
+                ],
+              ]),
+            ],
+          ),
+          File.Simple(
+            'TestERC20_1',
+            [Expect.Simple('balanceOf', ['cache@poolAddress'], ['1000', '0'])],
+            'TestERC20',
+          ),
+          File.Simple(
+            'TestERC20_0',
+            [Expect.Simple('balanceOf', ['cache@poolAddress'], ['1000', '0'])],
+            'TestERC20',
+          ),
+          new File(
+            'TestUniswapV3Callee',
+            'TestUniswapV3Callee',
+            [],
+            [
+              new Expect('swap0ForExact1', [
+                [
+                  'swap0ForExact1',
+                  [
+                    'cache@poolAddress',
+                    '1000',
+                    '0',
+                    '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
+                    '4295128740',
                   ],
                   [],
                   '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
                 ],
               ]),
-              Expect.Simple('slot0_', ['cache@poolAddress'], []),
-              Expect.Simple('liquidity_', ['cache@poolAddress'], []),
             ],
+          ),
+          File.Simple(
+            'TestERC20_1',
+            [Expect.Simple('balanceOf', ['cache@poolAddress'], ['1000', '0'])],
+            'TestERC20',
+          ),
+          File.Simple(
+            'TestERC20_0',
+            [Expect.Simple('balanceOf', ['cache@poolAddress'], ['1000', '0'])],
+            'TestERC20',
           ),
         ]),
         new Dir('abstractContracts', [

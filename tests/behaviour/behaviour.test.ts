@@ -23,7 +23,7 @@ import {
 } from '../../src/utils/postCairoWrite';
 import assert from 'assert';
 
-const PRINT_STEPS = false;
+const PRINT_STEPS = true;
 const PARALLEL_COUNT = 8;
 const TIME_LIMIT = 2 * 60 * 60 * 1000;
 

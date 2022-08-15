@@ -21,19 +21,22 @@ library FullMath {
         // then use the Chinese Remainder Theorem to reconstruct
         // the 512 bit result. The result is stored in two 256
         // variables such that product = prod1 * 2**256 + prod0
-        uint256 prod0; // Least significant 256 bits of the product
-        uint256 prod1; // Most significant 256 bits of the product
+        uint prod0;
+        unchecked {
+            prod0 = a * b;
+        
+        uint mm = mulmod(a, b, 2**256-1);
+        uint prod1;
+        
+         prod1 = mm - prod0;
+         if (mm < prod0)
+            prod1 -= 1;
+         
         //assembly {
         //    let mm := mulmod(a, b, not(0))
         //    prod0 := mul(a, b)
         //    prod1 := sub(sub(mm, prod0), lt(mm, prod0))
         //}
-        uint256 mm = (a * b) % (2**256 - 1);
-        prod0 = a * b;
-        prod1 = mm - prod0;
-        if (mm < prod0) 
-            prod1 -= 1;
-
         // Handle non-overflow cases, 256 by 256 division
         if (prod1 == 0) {
             require(denominator > 0);
@@ -58,16 +61,17 @@ library FullMath {
         //assembly {
         //    remainder := mulmod(a, b, denominator)
         //}
-        remainder = (a * b) % denominator;
+        remainder = mulmod(a, b, denominator);
         // Subtract 256 bit number from 512 bit number
         //assembly {
         //    prod1 := sub(prod1, gt(remainder, prod0))
         //    prod0 := sub(prod0, remainder)
         //}
+       
         if (remainder > prod0)
             prod1 -= 1;
         prod0 -= remainder;
-
+        
         // Factor powers of two out of denominator
         // Compute largest power of two divisor of denominator.
         // Always >= 1.
@@ -89,9 +93,10 @@ library FullMath {
         //assembly {
         //    twos := add(div(sub(0, twos), twos), 1)
         //}
+        
         twos = ((0 - twos) / twos) + 1;
         prod0 |= prod1 * twos;
-
+        
         // Invert denominator mod 2**256
         // Now that denominator is an odd number, it has an inverse
         // modulo 2**256 such that denominator * inv = 1 mod 2*256.
@@ -115,6 +120,7 @@ library FullMath {
         // We don't need to compute the high bits of the result and prod1
         // is no longer required.
         result = prod0 * inv;
+        }
         return result;
     }
 
@@ -129,9 +135,11 @@ library FullMath {
         uint256 denominator
     ) internal pure returns (uint256 result) {
         result = mulDiv(a, b, denominator);
+        unchecked {
         if ((a * b) % denominator > 0) {
             require(result < type(uint256).max);
             result++;
+        }
         }
     }
 }

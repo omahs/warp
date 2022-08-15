@@ -20,17 +20,10 @@ library Position {
         uint128 tokensOwed0;
         uint128 tokensOwed1;
     }
-
-    /// @notice Returns the Info struct of a position, given an owner and position boundaries
-    /// @param self The mapping containing all user positions
-    /// @param owner The address of the position owner
-    /// @param tickLower The lower tick boundary of the position
-    /// @param tickUpper The upper tick boundary of the position
-    /// @return position The position info struct of the given owners' position
-
+    
     /// warp-cairo
     /// func CURRENTFUNC(){
-    ///    range_check_ptr,
+    ///    range_check_ptr: felt,
     ///    bitwise_ptr: BitwiseBuiltin*,
     ///    warp_memory: DictAccess*,
     ///    keccak_ptr: felt*,
@@ -39,17 +32,23 @@ library Position {
     ///     tickLower : felt,
     ///     tickUpper : felt,
     /// ) -> (res: Uint256):
-    ///     from warplib.memory import wm_new, wm_write_felt
-    ///     let (arr) = wm_new(Uint256(3, 0), Uint256(1,0))
-    ///     wm_write_felt(arr + 2, owner)
-    ///     wm_write_felt(arr + 3, tickLower)
-    ///     wm_write_felt(arr + 4, tickUpper)
-    ///     let (res) = warp_keccak(arr)
+    ///     from starkware.cairo.common.hash import hash2
+    ///     from warplib.maths.utils import felt_to_uint256
+    ///     let (hash_res_1) = hash2{hash_ptr=pedersen_ptr}(owner, tickLower)
+    ///     let (hash_res_2) = hash2{hash_ptr=pedersen_ptr}(hash_res_1, tickUpper)
+    ///     let (res: Uint256) = felt_to_uint256(hash_res_2)
+
+    ///     #from warplib.memory import wm_new, wm_write_felt
+    ///     #let (arr) = wm_new(Uint256(3, 0), Uint256(1,0))
+    ///     #wm_write_felt(arr + 2, owner)
+    ///     #wm_write_felt(arr + 3, tickLower)
+    ///     #wm_write_felt(arr + 4, tickUpper)
+    ///     #let (res) = warp_keccak(arr)
     ///     return (res)
     ///end
     function hash_stub_0(address owner, int24 tickLower, int24 tickUpper) internal view returns (bytes32) {
-        bytes memory x = new bytes(0);
-        keccak256(x);
+        // bytes memory x = new bytes(0);
+        // keccak256(x);
         return 0;
     }
 

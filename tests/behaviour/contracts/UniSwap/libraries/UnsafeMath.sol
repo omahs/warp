@@ -13,9 +13,11 @@ library UnsafeMath {
         // assembly {
         //     z := add(div(x, y), gt(mod(x, y), 0))
         // }
+        unchecked {
         uint256 temp = 0;
         if (x % y > 0)
             temp = 1;
         z = (x / y) + temp;
+        }
     }
 }
