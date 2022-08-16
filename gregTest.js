@@ -187,8 +187,6 @@ function deployPool() {
           ];
         case 4:
           pool = _a.sent();
-          console.log('Pool successfully deployed');
-          console.log(pool.return_data[0]);
           return [2 /*return*/];
       }
     });

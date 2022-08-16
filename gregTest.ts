@@ -1,5 +1,4 @@
 import { deploy, invoke, declare } from './tests/testnetInterface';
-
 async function deployPool() {
   const factory = await deploy(
     './warp_output/v3_core/contracts/UniswapV3Factory__WC__UniswapV3Factory_compiled.json',
