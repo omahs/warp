@@ -4,7 +4,7 @@ import {
   SafePromise,
   cleanupSync,
   starknetCompile,
-  transpile,
+  // transpile,
   batchPromises,
   processArgs,
 } from '../util';
@@ -32,40 +32,40 @@ interface AsyncTestCluster {
   dependencies: Map<string, string[]>;
 }
 
-describe('Transpile solidity', function () {
-  this.timeout(TIME_LIMIT);
+// describe('Transpile solidity', function () {
+//   this.timeout(TIME_LIMIT);
 
-  let transpileResults: SafePromise<{ stderr: string }>[];
+//   let transpileResults: SafePromise<{ stderr: string }>[];
 
-  before(async function () {
-    for (const fileTest of expectations) {
-      if (fileTest.encodingError === undefined) {
-        cleanupSync(fileTest.cairo);
-        cleanupSync(fileTest.compiled);
-      }
-    }
+//   before(async function () {
+//     for (const fileTest of expectations) {
+//       if (fileTest.encodingError === undefined) {
+//         cleanupSync(fileTest.cairo);
+//         cleanupSync(fileTest.compiled);
+//       }
+//     }
 
-    transpileResults = batchPromises(
-      expectations.map((e) =>
-        e.encodingError === undefined ? e.sol : { stderr: e.encodingError },
-      ),
-      PARALLEL_COUNT,
-      (input) => (typeof input === 'string' ? transpile(input) : Promise.resolve(input)),
-    );
-  });
+//     transpileResults = batchPromises(
+//       expectations.map((e) =>
+//         e.encodingError === undefined ? e.sol : { stderr: e.encodingError },
+//       ),
+//       PARALLEL_COUNT,
+//       (input) => (typeof input === 'string' ? transpile(input) : Promise.resolve(input)),
+//     );
+//   });
 
-  for (let i = 0; i < expectations.length; ++i) {
-    it(expectations[i].name, async function () {
-      const res = await transpileResults[i];
-      expect(res.result, `warp-ts printed errors: ${res.result}`).to.include({ stderr: '' });
-      expect(
-        fs.existsSync(expectations[i].cairo),
-        `Transpilation failed, cannot find output file. Is the file's contract named WARP or specified in the expectations?`,
-      ).to.be.true;
-      expect(res.success, `${res.result}`);
-    });
-  }
-});
+//   for (let i = 0; i < expectations.length; ++i) {
+//     it(expectations[i].name, async function () {
+//       const res = await transpileResults[i];
+//       expect(res.result, `warp-ts printed errors: ${res.result}`).to.include({ stderr: '' });
+//       expect(
+//         fs.existsSync(expectations[i].cairo),
+//         `Transpilation failed, cannot find output file. Is the file's contract named WARP or specified in the expectations?`,
+//       ).to.be.true;
+//       expect(res.success, `${res.result}`);
+//     });
+//   }
+// });
 
 describe('Transpiled contracts are valid cairo', function () {
   this.timeout(TIME_LIMIT);

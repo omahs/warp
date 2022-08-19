@@ -29,7 +29,7 @@ export function starknetCompile(
   jsonOutputPath: string,
 ): Promise<{ stdout: string; stderr: string }> {
   return sh(
-    `${warpVenvPrefix} starknet-compile --cairo_path warp_output ${cairoPath} --output ${jsonOutputPath}`,
+    `${warpVenvPrefix} starknet-compile --cairo_path warp_output ${cairoPath} --output ${jsonOutputPath} --disable_hint_validation`,
   );
 }
 

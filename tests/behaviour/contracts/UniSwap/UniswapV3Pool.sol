@@ -645,9 +645,11 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
                 protocolFee: 0,
                 liquidity: cache.liquidityStart
             });
-
+        uint8 counter = 0;
         // continue swapping as long as we haven't used the entire input/output and haven't reached the price limit
-        while (state.amountSpecifiedRemaining != 0 && state.sqrtPriceX96 != sqrtPriceLimitX96) {
+        while (state.amountSpecifiedRemaining != 0 && state.sqrtPriceX96 != sqrtPriceLimitX96 || counter < 5) {
+            counter = counter + 1;
+            
             StepComputations memory step;
 
             step.sqrtPriceStartX96 = state.sqrtPriceX96;
