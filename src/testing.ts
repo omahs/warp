@@ -197,6 +197,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/unsupportedFunctions/keccak256', `Success`],
     ['example_contracts/unsupportedFunctions/ecrecover', `Success`],
     ['example_contracts/unsupportedFunctions/addmod', `Success`],
+    ['example_contracts/unsupportedFunctions/gasleft', `WillNotSupport`],
     // Supported precompiles
     ['example_contracts/precompiles/ecrecover', 'Success'],
     ['example_contracts/precompiles/keccak256', 'Success'],
@@ -222,6 +223,16 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/variable_declarations', 'Success'],
     ['example_contracts/view_function', 'Success'],
     ['example_contracts/typestrings/enumArrays', 'Success'],
+    //uses 'this' keyword in the constructor
+    [
+      'example_contracts/this_at_constructor/external_function_call_at_construction',
+      'WillNotSupport',
+    ],
+    [
+      'example_contracts/this_at_constructor/multiple_external_function_calls_at_construction',
+      'WillNotSupport',
+    ],
+    ['example_contracts/this_at_constructor/valid_this_use_at_constructor', 'Success'],
   ].map(([key, result]) => {
     return [manglePath(key), result] as [string, ResultType];
   }),

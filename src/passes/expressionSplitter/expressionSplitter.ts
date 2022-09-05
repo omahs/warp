@@ -3,7 +3,6 @@ import {
   Assignment,
   ContractDefinition,
   DataLocation,
-  Expression,
   Conditional,
   ExpressionStatement,
   FunctionCall,
@@ -15,7 +14,6 @@ import {
   VariableDeclaration,
   VariableDeclarationStatement,
   generalizeType,
-  getNodeType,
   FunctionKind,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
@@ -25,13 +23,18 @@ import { cloneASTNode } from '../../utils/cloning';
 import { TranspileFailedError } from '../../utils/errors';
 import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
 import { SPLIT_EXPRESSION_PREFIX } from '../../utils/nameModifiers';
-import { createEmptyTuple, createIdentifier } from '../../utils/nodeTemplates';
-import { counterGenerator } from '../../utils/utils';
+import {
+  createEmptyTuple,
+  createExpressionStatement,
+  createIdentifier,
+  createVariableDeclarationStatement,
+} from '../../utils/nodeTemplates';
+import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
+import { counterGenerator, getContainingFunction } from '../../utils/utils';
 import {
   addStatementsToCallFunction,
   createFunctionBody,
   getConditionalReturnVariable,
-  getContainingFunction,
   getInputs,
   getNodeVariables,
   getParams,
@@ -66,24 +69,38 @@ export class ExpressionSplitter extends ASTMapper {
       ) {
         return;
       }
-
-      const leftHandSide = cloneASTNode(node.vLeftHandSide, ast);
-      const rightHandSide = cloneASTNode(node.vRightHandSide, ast);
-
-      const tempVarStatement = createVariableDeclarationStatement(
-        this.eGen.next().value,
-        rightHandSide,
-        ast.getContainingScope(node),
-        ast,
+      const initialValue = node.vRightHandSide;
+      const location =
+        generalizeType(safeGetNodeType(initialValue, ast.compilerVersion))[1] ??
+        DataLocation.Default;
+      const varDecl = new VariableDeclaration(
+        ast.reserveId(),
+        '',
+        false,
+        false,
+        this.eGen.next().value, //name
+        ast.getContainingScope(node), //scope
+        false,
+        location,
+        StateVariableVisibility.Internal,
+        Mutability.Constant,
+        initialValue.typeString,
       );
+
+      const tempVarStatement = createVariableDeclarationStatement([varDecl], initialValue, ast);
       const tempVar = tempVarStatement.vDeclarations[0];
 
-      const updateVal = createAssignmentStatement(
+      const leftHandSide = cloneASTNode(node.vLeftHandSide, ast);
+      const rightHandSide = createIdentifier(tempVar, ast, undefined, node);
+      const assignment = new Assignment(
+        ast.reserveId(),
+        '',
+        leftHandSide.typeString,
         '=',
         leftHandSide,
-        createIdentifier(tempVar, ast),
-        ast,
+        rightHandSide,
       );
+      const updateVal = createExpressionStatement(ast, assignment);
 
       ast.insertStatementBefore(node, tempVarStatement);
       ast.insertStatementBefore(node, updateVal);
@@ -173,46 +190,5 @@ function identifierReferenceStateVar(id: Identifier) {
   return (
     refDecl instanceof VariableDeclaration &&
     refDecl.getClosestParentByType(ContractDefinition)?.id === refDecl.scope
-  );
-}
-
-function createVariableDeclarationStatement(
-  name: string,
-  initalValue: Expression,
-  scope: number,
-  ast: AST,
-): VariableDeclarationStatement {
-  const location =
-    generalizeType(getNodeType(initalValue, ast.compilerVersion))[1] ?? DataLocation.Default;
-  const varDecl = new VariableDeclaration(
-    ast.reserveId(),
-    '',
-    false,
-    false,
-    name,
-    scope,
-    false,
-    location,
-    StateVariableVisibility.Internal,
-    Mutability.Constant,
-    initalValue.typeString,
-  );
-  ast.setContextRecursive(varDecl);
-
-  const varDeclStatement = new VariableDeclarationStatement(
-    ast.reserveId(),
-    '',
-    [varDecl.id],
-    [varDecl],
-    initalValue,
-  );
-  return varDeclStatement;
-}
-
-function createAssignmentStatement(operator: string, lhs: Expression, rhs: Expression, ast: AST) {
-  return new ExpressionStatement(
-    ast.reserveId(),
-    '',
-    new Assignment(ast.reserveId(), '', lhs.typeString, operator, lhs, rhs),
   );
 }

@@ -6,10 +6,10 @@ import {
   Expression,
   FunctionCall,
   generalizeType,
-  getNodeType,
   SourceUnit,
   StringType,
   StructDefinition,
+  TypeName,
   typeNameToTypeNode,
   TypeNode,
   UserDefinedType,
@@ -30,6 +30,7 @@ import {
   isDynamicArray,
   isStruct,
   isValueType,
+  safeGetNodeType,
 } from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '../base';
@@ -72,22 +73,21 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
    * Given a expression list it generates a `encode` cairo function definition
    * and call that serializes the arguments into a list of felts
    * @param expressions expression list
+   * @param expectedTypes expected type for each expression of the list
    * @param sourceUnit source unit where the expression is defined
    * @returns a function call that serializes the value of `expressions`
    */
-  gen(expressions: Expression[], sourceUnit?: SourceUnit): FunctionCall {
-    const exprTypes = expressions.map(
-      (expr) => generalizeType(getNodeType(expr, this.ast.compilerVersion))[0],
-    );
-    const functionName = this.getOrCreate(exprTypes);
+  gen(expressions: Expression[], expectedTypes: TypeNode[], sourceUnit?: SourceUnit): FunctionCall {
+    assert(expectedTypes.length === expressions.length);
+    expectedTypes = expectedTypes.map((type) => generalizeType(type)[0]);
+    const functionName = this.getOrCreate(expectedTypes);
 
     const functionStub = createCairoFunctionStub(
       functionName,
-      exprTypes.map((exprT, index) => [
-        `arg${index}`,
-        typeNameFromTypeNode(exprT, this.ast),
-        DataLocation.CallData,
-      ]),
+      expectedTypes.map((exprT, index) => {
+        const input: [string, TypeName] = [`arg${index}`, typeNameFromTypeNode(exprT, this.ast)];
+        return isValueType(exprT) ? input : [...input, DataLocation.CallData];
+      }),
       [['result', createBytesTypeName(this.ast), DataLocation.CallData]],
       [],
       this.ast,
@@ -273,7 +273,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     assert(type.definition instanceof StructDefinition);
 
     const encodeCode = type.definition.vMembers.map((varDecl, index) => {
-      const varType = getNodeType(varDecl, this.ast.compilerVersion);
+      const varType = safeGetNodeType(varDecl, this.ast.compilerVersion);
       return [
         `let member_${index} = from_struct.${varDecl.name}`,
         ...this.generateEncodeCode(varType, `member_${index}`),

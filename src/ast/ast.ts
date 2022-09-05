@@ -7,7 +7,6 @@ import {
   Expression,
   FunctionCall,
   generalizeType,
-  getNodeType,
   Identifier,
   Mutability,
   SourceUnit,
@@ -24,7 +23,8 @@ import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 import { Implicits } from '../utils/implicits';
 import { createBlock } from '../utils/nodeTemplates';
-import { isExternalCall, mergeImports } from '../utils/utils';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
+import { getContainingSourceUnit, isExternalCall, mergeImports } from '../utils/utils';
 import { CairoFunctionDefinition } from './cairoNodes';
 
 /*
@@ -94,11 +94,12 @@ export class AST {
     let location: DataLocation;
     if (node instanceof FunctionCall && isExternalCall(node)) {
       location =
-        generalizeType(getNodeType(node, this.compilerVersion))[1] === undefined
+        generalizeType(safeGetNodeType(node, this.compilerVersion))[1] === undefined
           ? DataLocation.Default
           : DataLocation.CallData;
     } else {
-      location = generalizeType(getNodeType(node, this.compilerVersion))[1] ?? DataLocation.Default;
+      location =
+        generalizeType(safeGetNodeType(node, this.compilerVersion))[1] ?? DataLocation.Default;
     }
     const replacementVariable = new VariableDeclaration(
       this.tempId,
@@ -140,8 +141,7 @@ export class AST {
   getContainingRoot(node: ASTNode): SourceUnit {
     if (node instanceof SourceUnit) return node;
 
-    const root = node.getClosestParentByType(SourceUnit);
-    assert(root !== undefined, `Could not find root source unit for ${printNode(node)}`);
+    const root = getContainingSourceUnit(node);
     assert(
       this.roots.includes(root),
       `Found ${printNode(root)} as root of ${printNode(node)}, but this is not in the AST roots`,
@@ -185,11 +185,7 @@ export class AST {
   }
 
   getUtilFuncGen(node: ASTNode): CairoUtilFuncGen {
-    const sourceUnit = node instanceof SourceUnit ? node : node.getClosestParentByType(SourceUnit);
-    assert(
-      sourceUnit !== undefined,
-      'Could not find the sourceUnit to attach the nodes generated functions to',
-    );
+    const sourceUnit = node instanceof SourceUnit ? node : getContainingSourceUnit(node);
     const gen = this.cairoUtilFuncGen.get(sourceUnit.id);
     if (gen === undefined) {
       const newGen = new CairoUtilFuncGen(this, sourceUnit);

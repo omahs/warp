@@ -445,6 +445,12 @@ export const expectations = flatten(
         ]),
         new Dir('cairo_stubs', [
           File.Simple('basic', [Expect.Simple('useStub', [], ['5'])]),
+          File.Simple('currentFunc', [
+            Expect.Simple('simpleCase', [], ['1']),
+            Expect.Simple('recursiveAdd', ['5', '3'], ['8']),
+            Expect.Simple('testInternalDefinedInBase', [], ['2']),
+            Expect.Simple('externalDefinedInBase', [], ['1']),
+          ]),
           File.Simple('proxy', [
             new Expect('set hash and use', [
               ['setHash', ['hash@tests/behaviour/contracts/cairo_stubs/basic.WARP'], [], '0'],
@@ -1833,6 +1839,11 @@ export const expectations = flatten(
           File.Simple('external_base_this_call', [
             Expect.Simple('externalCallSelfAsBase', [], ['23', '0']),
           ]),
+          File.Simple('otherReferenceTypes', [
+            Expect.Simple('setProduct', ['1', '2', '3', '5', '7', '11', '13'], []),
+            Expect.Simple('getS', [], ['1', '2', '3', '5']),
+            Expect.Simple('getT', [], ['7', '11', '13']),
+          ]),
         ]),
         // covers nested mappings
         new Dir('Dai', [
@@ -3140,6 +3151,8 @@ export const expectations = flatten(
           File.Simple('le', [
             Expect.Simple('le8safe', ['1', '2'], ['1']),
             Expect.Simple('le8signedsafe', ['255', '1'], ['1']),
+            Expect.Simple('le8signedsafe', ['1', '10'], ['1']),
+            Expect.Simple('le8signedsafe', ['156', '255'], ['1']),
             Expect.Simple('le8unsafe', ['2', '1'], ['0']),
             Expect.Simple('le8signedunsafe', ['5', '100'], ['1']),
             Expect.Simple('le256safe', ['20', '3', '20', '3'], ['1']),
@@ -3454,8 +3467,9 @@ export const expectations = flatten(
           ]),
           File.Simple('salted', [
             new Expect('Create multiple salted contracts', [
-              ['createUint256Contract', ['0', '1', '0', '2'], [], '0'],
-              ['createUint256Contract', ['0', '2', '0', '5'], [], '0'],
+              ['createAndStoreUint256Contract', ['0', '1', '0', '2'], [], '0'],
+              ['createAndStoreUint256Contract', ['0', '2', '0', '5'], [], '0'],
+              ['createUint256Contract', ['0', `${2n ** 128n - 1n}`, '0', '7'], [], '0'],
             ]),
             new Expect('Interact with different deployed salted contracts', [
               ['getUint256X', ['0', '1'], ['0', '2'], '0'],
@@ -3988,6 +4002,9 @@ export const expectations = flatten(
         File.Simple('example', [
           Expect.Simple('test', [], []),
           Expect.Simple('returnTest', [], ['12', '0']),
+        ]),
+        File.Simple('removeIdentityFunctions', [
+          Expect.Simple('f', ['10', '0'], ['3', '20', '0', '5', '0', '13', '0']),
         ]),
       ]),
     ]),

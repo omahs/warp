@@ -1,9 +1,12 @@
 import assert from 'assert';
+import * as path from 'path';
+import { execSync } from 'child_process';
 import {
   AddressType,
   ArrayType,
   ArrayTypeName,
   Assignment,
+  ASTNode,
   BoolType,
   BytesType,
   CompileFailedError,
@@ -19,7 +22,6 @@ import {
   FunctionStateMutability,
   FunctionVisibility,
   generalizeType,
-  getNodeType,
   Identifier,
   IdentifierPath,
   IndexAccess,
@@ -33,6 +35,7 @@ import {
   PointerType,
   Return,
   SourceLocation,
+  SourceUnit,
   StateVariableVisibility,
   StringType,
   StructDefinition,
@@ -47,7 +50,7 @@ import {
 import Web3 from 'web3';
 import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
-import { printTypeNode } from './astPrinter';
+import { printNode, printTypeNode } from './astPrinter';
 import {
   logError,
   NotSupportedYetError,
@@ -61,7 +64,7 @@ import {
   createBytesTypeName,
   createNumberLiteral,
 } from './nodeTemplates';
-import { isDynamicArray, isDynamicCallDataArray } from './nodeTypeProcessing';
+import { isDynamicArray, isDynamicCallDataArray, safeGetNodeType } from './nodeTypeProcessing';
 import { Class } from './typeConstructs';
 
 const uint128 = BigInt('0x100000000000000000000000000000000');
@@ -428,7 +431,7 @@ export function isExternalMemoryDynArray(node: Identifier, compilerVersion: stri
     return false;
 
   const declarationLocation = declaration.storageLocation;
-  const [nodeType, typeLocation] = generalizeType(getNodeType(node, compilerVersion));
+  const [nodeType, typeLocation] = generalizeType(safeGetNodeType(node, compilerVersion));
 
   return (
     isDynamicArray(nodeType) &&
@@ -440,7 +443,7 @@ export function isExternalMemoryDynArray(node: Identifier, compilerVersion: stri
 // Detects when an identifier represents a calldata dynamic array in solidity
 export function isCalldataDynArrayStruct(node: Identifier, compilerVersion: string): boolean {
   return (
-    isDynamicCallDataArray(getNodeType(node, compilerVersion)) &&
+    isDynamicCallDataArray(safeGetNodeType(node, compilerVersion)) &&
     ((node.getClosestParentByType(Return) !== undefined &&
       node.getClosestParentByType(IndexAccess) === undefined &&
       node.getClosestParentByType(FunctionDefinition)?.visibility === FunctionVisibility.External &&
@@ -479,4 +482,34 @@ export function getSourceFromLocation(source: string, location: SourceLocation):
     .reduce(([s, n], c) => [[...s, `${n}  ${c}`], n + 1], [new Array<string>(), followingLineNum]);
 
   return [...previousLines, ...currentLine, ...followingLines].join('\n');
+}
+
+export function callClassHashScript(filePath: string): string {
+  const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
+  const classHashScriptPath = path.resolve(
+    __dirname,
+    '..',
+    '..',
+    'starknet-scripts',
+    'compute_class_hash.py',
+  );
+  const classHash = execSync(`${warpVenvPrefix} python ${classHashScriptPath} ${filePath}`)
+    .toString()
+    .trim();
+  if (classHash === undefined) {
+    throw new Error(`Cannot calculate class hash.`);
+  }
+  return classHash;
+}
+
+export function getContainingFunction(node: ASTNode): FunctionDefinition {
+  const func = node.getClosestParentByType(FunctionDefinition);
+  assert(func !== undefined, `Unable to find containing function for ${printNode(node)}`);
+  return func;
+}
+
+export function getContainingSourceUnit(node: ASTNode): SourceUnit {
+  const root = node.getClosestParentByType(SourceUnit);
+  assert(root !== undefined, `Unable to find root source unit for ${printNode(node)}`);
+  return root;
 }
