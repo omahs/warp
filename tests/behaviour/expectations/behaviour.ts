@@ -160,7 +160,7 @@ export const expectations = flatten(
                     //'3161',
                     '0x1bc16d674ec80000',
                   ],
-                  ['10000', '0', '10000', '0'],
+                  ['2000000000000000000', '0', '2000000000000000000', '0'],
                   '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
                 ],
               ]),
@@ -168,12 +168,12 @@ export const expectations = flatten(
           ),
           File.Simple(
             'TestERC20_1',
-            [Expect.Simple('balanceOf', ['cache@poolAddress'], ['1000', '0'])],
+            [Expect.Simple('balanceOf', ['cache@poolAddress'], ['2000000000000000000', '0'])],
             'TestERC20',
           ),
           File.Simple(
             'TestERC20_0',
-            [Expect.Simple('balanceOf', ['cache@poolAddress'], ['1000', '0'])],
+            [Expect.Simple('balanceOf', ['cache@poolAddress'], ['2000000000000000000', '0'])],
             'TestERC20',
           ),
           new File(
@@ -191,7 +191,12 @@ export const expectations = flatten(
                     '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
                     '0x01000276a4',
                   ],
-                  [],
+                  [
+                    '2001000500250125077',
+                    '0',
+                    '340282366920938463462374607431768211456',
+                    '340282366920938463463374607431768211455',
+                  ],
                   '0x6dbda1f51ae01d0a60d34369958fa0d12b76167e024c099ae7f1cd6beb68a8c',
                 ],
               ]),
@@ -199,12 +204,12 @@ export const expectations = flatten(
           ),
           File.Simple(
             'TestERC20_1',
-            [Expect.Simple('balanceOf', ['cache@poolAddress'], ['1000', '0'])],
+            [Expect.Simple('balanceOf', ['cache@poolAddress'], ['1000000000000000000', '0'])],
             'TestERC20',
           ),
           File.Simple(
             'TestERC20_0',
-            [Expect.Simple('balanceOf', ['cache@poolAddress'], ['1000', '0'])],
+            [Expect.Simple('balanceOf', ['cache@poolAddress'], ['4001000500250125077', '0'])],
             'TestERC20',
           ),
         ]),

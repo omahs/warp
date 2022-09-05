@@ -42,7 +42,7 @@ function filterTests(
   }
 
   console.log(`Using filter '${filter}' on behaviour test paths`);
-  return tests.filter((test) => test.name.includes(filter));
+  return tests.filter((test) => test.name.includes('UniSwap'));
 }
 // uniSwap
 export const expectations = filterTests(behaviour, semantic, 'UniSwap');

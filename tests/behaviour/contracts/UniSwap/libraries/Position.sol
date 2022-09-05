@@ -46,7 +46,7 @@ library Position {
     ///     #let (res) = warp_keccak(arr)
     ///     return (res)
     ///end
-    function hash_stub_0(address owner, int24 tickLower, int24 tickUpper) internal view returns (bytes32) {
+    function hash_stub_0(address owner, int24 tickLower, int24 tickUpper) internal pure returns (bytes32) {
         // bytes memory x = new bytes(0);
         // keccak256(x);
         return 0;
