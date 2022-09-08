@@ -5,7 +5,6 @@ import {
   Expression,
   FunctionDefinition,
   generalizeType,
-  getNodeType,
   Identifier,
   IndexAccess,
   Literal,
@@ -24,26 +23,26 @@ import { NotSupportedYetError, TranspileFailedError } from '../utils/errors';
 import { generateExpressionTypeString } from '../utils/getTypeString';
 import { CALLDATA_TO_MEMORY_PREFIX } from '../utils/nameModifiers';
 import { createIdentifier } from '../utils/nodeTemplates';
-import { specializeType } from '../utils/nodeTypeProcessing';
-import { typeNameFromTypeNode } from '../utils/utils';
+import { safeGetNodeType, specializeType } from '../utils/nodeTypeProcessing';
+import { getContainingFunction, typeNameFromTypeNode } from '../utils/utils';
 
 export class StaticArrayIndexer extends ASTMapper {
   /*
-    This pass replace all non literal calldata structures which have a non literal
-    index access for a memory one.
-    This pass is needed because static arrays are handled as cairo tuples, but cairo
-    tuples (for now) can only be indexed by literals
-    e.g.
-      uint8[3] calldata b = ...
-      uint8 x = b[i]
-   // gets replaced by:
-      uint8[3] calldata b = ...
-      uint8[3] memory mem_b  = b
-      uint8[x] = mem_b[i]
-
-    More complex cases can occur as well, for example when the static array is nested
-    inside another structure, then the whole structure is copied to memory
-  */
+      This pass replace all non literal calldata structures which have a non literal
+      index access for a memory one.
+      This pass is needed because static arrays are handled as cairo tuples, but cairo
+      tuples (for now) can only be indexed by literals
+      e.g.
+        uint8[3] calldata b = ...
+        uint8 x = b[i]
+     // gets replaced by:
+        uint8[3] calldata b = ...
+        uint8[3] memory mem_b  = b
+        uint8[x] = mem_b[i]
+  
+      More complex cases can occur as well, for example when the static array is nested
+      inside another structure, then the whole structure is copied to memory
+    */
 
   // Tracks calldata structures which already have a memory counterpart initalized
   private staticArrayAccesed = new Map<number, VariableDeclaration>();
@@ -70,11 +69,7 @@ export class StaticArrayIndexer extends ASTMapper {
     const identifier = getReferenceDeclaration(node, ast);
 
     assert(identifier.vReferencedDeclaration instanceof VariableDeclaration);
-    const parentFunction = node.getClosestParentByType(FunctionDefinition);
-    assert(
-      parentFunction !== undefined,
-      'Calldata types must be enclosed in a function definition',
-    );
+    const parentFunction = getContainingFunction(node);
 
     const refId = identifier.referencedDeclaration;
 
@@ -94,7 +89,7 @@ export class StaticArrayIndexer extends ASTMapper {
     refVarDecl: VariableDeclaration,
     ast: AST,
   ): Identifier | IndexAccess | MemberAccess {
-    const exprType = getNodeType(expr, ast.compilerVersion);
+    const exprType = safeGetNodeType(expr, ast.compilerVersion);
     const exprMemoryType = specializeType(generalizeType(exprType)[0], DataLocation.Memory);
 
     let replacement: Identifier | IndexAccess | MemberAccess;
@@ -132,7 +127,7 @@ export class StaticArrayIndexer extends ASTMapper {
     ast: AST,
   ): VariableDeclaration {
     const refId = identifier.referencedDeclaration;
-    const memoryType = generalizeType(getNodeType(identifier, ast.compilerVersion))[0];
+    const memoryType = generalizeType(safeGetNodeType(identifier, ast.compilerVersion))[0];
 
     const varDecl = new VariableDeclaration(
       ast.reserveId(),
@@ -189,7 +184,7 @@ function isCalldataStaticArray(type: TypeNode): boolean {
 function hasIndexAccess(node: Expression, ast: AST): boolean {
   return (
     (node instanceof IndexAccess &&
-      ((isCalldataStaticArray(getNodeType(node.vBaseExpression, ast.compilerVersion)) &&
+      ((isCalldataStaticArray(safeGetNodeType(node.vBaseExpression, ast.compilerVersion)) &&
         isIndexedByNonLiteral(node)) ||
         hasIndexAccess(node.vBaseExpression, ast))) ||
     (node instanceof MemberAccess && hasIndexAccess(node.vExpression, ast))

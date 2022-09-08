@@ -1,6 +1,6 @@
 // import { encodePriceSqrt } from '../../util';
 import { Dir, Expect, File } from './types';
-import { flatten } from './utils';
+import { getByte32Array, flatten, getByteXArray } from './utils';
 
 export const expectations = flatten(
   new Dir('tests', [
@@ -208,6 +208,114 @@ export const expectations = flatten(
             'TestERC20',
           ),
         ]),
+        new Dir('abiEncode', [
+          File.Simple('abiEncodeDynamic', [
+            Expect.Simple('simpleDynamic', [], getByte32Array(32, 3, 2, 3, 5)),
+            Expect.Simple(
+              'nestedDynamic',
+              [],
+              getByte32Array(32, 2, 64, 192, 3, 2, 3, 5, 2, 7, 11),
+            ),
+            Expect.Simple(
+              'mixDynamic',
+              [],
+              getByte32Array(64, 384, 2, 64, 192, 3, 2, 3, 5, 2, 7, 11, 3, 2, 3, 5),
+            ),
+          ]),
+          File.Simple('abiEncodeStatic', [
+            Expect.Simple('staticSimple', [], getByte32Array(2, 3, 5)),
+            Expect.Simple('staticNested', [], getByte32Array(2, 3, 4, 5)),
+            Expect.Simple('staticDynamicNested', [], getByte32Array(32, 64, 160, 2, 2, 3, 1, 11)),
+          ]),
+          File.Simple('abiEncodeStrings', [
+            Expect.Simple('emptyString', [], getByte32Array(32, 0)),
+            Expect.Simple(
+              'stringEncoding',
+              [],
+              getByte32Array(32, 4, BigInt('0x686f6c61'.padEnd(66, '0'))),
+            ),
+            Expect.Simple(
+              'docsExample',
+              [],
+              getByte32Array(
+                ...[64, 320],
+                ...[2, 64, 160],
+                ...[2, 1, 2],
+                ...[1, 3],
+                ...[3, 96, 160, 224],
+                ...[3, BigInt('0x6f6e65'.padEnd(66, '0'))],
+                ...[3, BigInt('0x74776f'.padEnd(66, '0'))],
+                ...[5, BigInt('0x7468726565'.padEnd(66, '0'))],
+              ),
+            ),
+          ]),
+          File.Simple('abiEncodeStruct', [
+            Expect.Simple('structSimple', [], getByte32Array(2, 3)),
+            Expect.Simple('structComplex', [], getByte32Array(32, 128, 7, 11, 13, 3, 2, 3, 5)),
+          ]),
+          File.Simple('abiEncodeValue', [
+            Expect.Simple('rational', [], getByte32Array(255, 65534)),
+            Expect.Simple(
+              'rationalLiterals',
+              [],
+              getByte32Array(1, BigInt(2) ** BigInt(256) - BigInt(2)),
+            ),
+          ]),
+          File.Simple('abiEncodePacked', [
+            Expect.Simple(
+              'fixedBytes',
+              ['7', '5', '3'],
+              getByteXArray(
+                { byteSize: 18, value: 7 },
+                { byteSize: 32, value: BigInt(3) * BigInt(2) ** BigInt(128) + BigInt(5) },
+              ),
+            ),
+            Expect.Simple(
+              'addresses',
+              ['1', '2'],
+              getByteXArray({ byteSize: 32, value: 1 }, { byteSize: 32, value: 2 }),
+            ),
+            Expect.Simple('booleans', ['1', '1'], ['2', '1', '1']),
+            Expect.Simple('enums', ['3', '2'], ['2', '3', '2']),
+            Expect.Simple(
+              'bArray',
+              ['3', '2', '3', '5', '4', '7', '11', '13', '17'],
+              ['7', '2', '3', '5', '7', '11', '13', '17'],
+            ),
+            Expect.Simple(
+              'dynArray',
+              [...['2', '3', '5'], ...['1', '7', '0']],
+              getByteXArray(
+                { byteSize: 4, value: 3 },
+                { byteSize: 4, value: 5 },
+                { byteSize: 32, value: 7 },
+              ),
+            ),
+            Expect.Simple(
+              'staticArray',
+              ['2', '3', '5', '7', '11'],
+              getByteXArray(
+                { byteSize: 1, value: 2 },
+                { byteSize: 1, value: 3 },
+                { byteSize: 4, value: 5 },
+                { byteSize: 4, value: 7 },
+                { byteSize: 4, value: 11 },
+              ),
+            ),
+          ]),
+          File.Simple('abiEncodeWithSelector', [
+            Expect.Simple(
+              'encodeWithSelector',
+              [],
+              getByteXArray({ byteSize: 4, value: 0x01020304 }, { byteSize: 32, value: 3 }),
+            ),
+            Expect.Simple(
+              'encodeWithSignature',
+              [],
+              getByteXArray({ byteSize: 4, value: 0x697e407d }, { byteSize: 32, value: 15 }),
+            ),
+          ]),
+        ]),
         new Dir('abstractContracts', [
           File.Simple('mappingInConstructor', [
             Expect.Simple(
@@ -223,6 +331,28 @@ export const expectations = flatten(
               'test the value set by the abstract constructor',
             ),
           ]),
+        ]),
+        new Dir('anonymous_parameters', [
+          new File(
+            'func_override',
+            'A',
+            [],
+            [
+              Expect.Simple('f8', ['1', '2'], ['10']),
+              Expect.Simple('f256', ['1', '0', '2', '0'], ['10', '0']),
+            ],
+          ),
+          new File(
+            'func_override',
+            'B',
+            [],
+            [
+              Expect.Simple('f8', ['3', '2'], ['5']),
+              Expect.Simple('f256', ['5', '0', '4', '0'], ['9', '0']),
+              Expect.Simple('one_argument8', ['5', '4'], ['12']),
+              Expect.Simple('one_argument256', ['7', '0', '90', '725'], ['14', '0']),
+            ],
+          ),
         ]),
         new Dir('array_len', [
           File.Simple('memoryArray', [Expect.Simple('dynMemArrayLen', [], ['45', '0'])]),
@@ -445,6 +575,12 @@ export const expectations = flatten(
         ]),
         new Dir('cairo_stubs', [
           File.Simple('basic', [Expect.Simple('useStub', [], ['5'])]),
+          File.Simple('currentFunc', [
+            Expect.Simple('simpleCase', [], ['1']),
+            Expect.Simple('recursiveAdd', ['5', '3'], ['8']),
+            Expect.Simple('testInternalDefinedInBase', [], ['2']),
+            Expect.Simple('externalDefinedInBase', [], ['1']),
+          ]),
           File.Simple('proxy', [
             new Expect('set hash and use', [
               ['setHash', ['hash@tests/behaviour/contracts/cairo_stubs/basic.WARP'], [], '0'],
@@ -1833,6 +1969,11 @@ export const expectations = flatten(
           File.Simple('external_base_this_call', [
             Expect.Simple('externalCallSelfAsBase', [], ['23', '0']),
           ]),
+          File.Simple('otherReferenceTypes', [
+            Expect.Simple('setProduct', ['1', '2', '3', '5', '7', '11', '13'], []),
+            Expect.Simple('getS', [], ['1', '2', '3', '5']),
+            Expect.Simple('getT', [], ['7', '11', '13']),
+          ]),
         ]),
         // covers nested mappings
         new Dir('Dai', [
@@ -2144,6 +2285,20 @@ export const expectations = flatten(
                 '170141183460469231731687303715884105728',
               ],
             ),
+          ]),
+          File.Simple('rationalLiterals', [
+            Expect.Simple('equalValue', [], ['255']),
+            Expect.Simple('greaterThan', [], ['1']),
+            Expect.Simple('add', [], ['8']),
+            Expect.Simple('subtract', [], ['3']),
+            Expect.Simple('multiply', [], ['25']),
+            Expect.Simple('divideBy', [], ['2']),
+            Expect.Simple('exp', [], ['64']),
+            Expect.Simple('mod', [], ['2']),
+            Expect.Simple('shiftLeft', [], ['4']),
+            Expect.Simple('shiftRight', [], ['1']),
+            Expect.Simple('bitwiseNegate', [], ['253']),
+            Expect.Simple('toInteger', [], ['3']),
           ]),
           File.Simple('tupleEdgeCases', [Expect.Simple('f', ['0', '0'], ['0', '0'])]),
           File.Simple('tupleOfInlineArrays', [Expect.Simple('g', [], ['21'])]),
@@ -2921,6 +3076,7 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('libraries', [
+          File.Simple('constantInitialization', [Expect.Simple('f', [], ['20001'])]),
           File.Simple('using_for', [
             Expect.Simple('libFunction', ['1'], ['0'], 'uint256/true branch'),
           ]),
@@ -3140,6 +3296,8 @@ export const expectations = flatten(
           File.Simple('le', [
             Expect.Simple('le8safe', ['1', '2'], ['1']),
             Expect.Simple('le8signedsafe', ['255', '1'], ['1']),
+            Expect.Simple('le8signedsafe', ['1', '10'], ['1']),
+            Expect.Simple('le8signedsafe', ['156', '255'], ['1']),
             Expect.Simple('le8unsafe', ['2', '1'], ['0']),
             Expect.Simple('le8signedunsafe', ['5', '100'], ['1']),
             Expect.Simple('le256safe', ['20', '3', '20', '3'], ['1']),
@@ -3454,8 +3612,9 @@ export const expectations = flatten(
           ]),
           File.Simple('salted', [
             new Expect('Create multiple salted contracts', [
-              ['createUint256Contract', ['0', '1', '0', '2'], [], '0'],
-              ['createUint256Contract', ['0', '2', '0', '5'], [], '0'],
+              ['createAndStoreUint256Contract', ['0', '1', '0', '2'], [], '0'],
+              ['createAndStoreUint256Contract', ['0', '2', '0', '5'], [], '0'],
+              ['createUint256Contract', ['0', `${2n ** 128n - 1n}`, '0', '7'], [], '0'],
             ]),
             new Expect('Interact with different deployed salted contracts', [
               ['getUint256X', ['0', '1'], ['0', '2'], '0'],
@@ -3988,6 +4147,9 @@ export const expectations = flatten(
         File.Simple('example', [
           Expect.Simple('test', [], []),
           Expect.Simple('returnTest', [], ['12', '0']),
+        ]),
+        File.Simple('removeIdentityFunctions', [
+          Expect.Simple('f', ['10', '0'], ['3', '20', '0', '5', '0', '13', '0']),
         ]),
       ]),
     ]),

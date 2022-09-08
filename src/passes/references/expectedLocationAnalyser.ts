@@ -12,7 +12,6 @@ import {
   FunctionDefinition,
   FunctionVisibility,
   generalizeType,
-  getNodeType,
   IfStatement,
   IndexAccess,
   MappingType,
@@ -31,9 +30,14 @@ import { locationIfComplexType } from '../../cairoUtilFuncGen/base';
 import { printNode } from '../../utils/astPrinter';
 import { TranspileFailedError } from '../../utils/errors';
 import { error } from '../../utils/formatting';
-import { getParameterTypes, isDynamicArray, isReferenceType } from '../../utils/nodeTypeProcessing';
+import {
+  getParameterTypes,
+  isDynamicArray,
+  isReferenceType,
+  safeGetNodeType,
+} from '../../utils/nodeTypeProcessing';
 import { notNull } from '../../utils/typeConstructs';
-import { isExternallyVisible } from '../../utils/utils';
+import { getContainingFunction, isExternallyVisible } from '../../utils/utils';
 
 /*
 Analyses the tree top down, marking nodes with the storage location associated
@@ -60,12 +64,12 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     if (lhsLocation === DataLocation.Storage) {
       this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
       const rhsLocation =
-        generalizeType(getNodeType(node.vRightHandSide, ast.compilerVersion))[1] ??
+        generalizeType(safeGetNodeType(node.vRightHandSide, ast.compilerVersion))[1] ??
         DataLocation.Default;
       this.expectedLocations.set(node.vRightHandSide, rhsLocation);
     } else if (lhsLocation === DataLocation.Memory) {
       this.expectedLocations.set(node.vLeftHandSide, lhsLocation);
-      const rhsType = getNodeType(node.vRightHandSide, ast.compilerVersion);
+      const rhsType = safeGetNodeType(node.vRightHandSide, ast.compilerVersion);
       this.expectedLocations.set(
         node.vRightHandSide,
         locationIfComplexType(rhsType, DataLocation.Memory),
@@ -105,9 +109,9 @@ export class ExpectedLocationAnalyser extends ASTMapper {
 
   visitFunctionCall(node: FunctionCall, ast: AST): void {
     if (node.kind === FunctionCallKind.TypeConversion) {
-      const toType = getNodeType(node, ast.compilerVersion);
+      const toType = safeGetNodeType(node, ast.compilerVersion);
       node.vArguments.forEach((arg) => {
-        const [type, location] = generalizeType(getNodeType(arg, ast.compilerVersion));
+        const [type, location] = generalizeType(safeGetNodeType(arg, ast.compilerVersion));
         if (isDynamicArray(type) && !isReferenceType(toType)) {
           this.expectedLocations.set(arg, locationIfComplexType(type, DataLocation.Memory));
         } else {
@@ -150,7 +154,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
           }
 
           // If no expected location, check the type associated with the parent struct constructor
-          const structType = getNodeType(node, ast.compilerVersion);
+          const structType = safeGetNodeType(node, ast.compilerVersion);
           assert(structType instanceof PointerType);
           if (structType.location !== DataLocation.Default) {
             this.expectedLocations.set(arg, structType.location);
@@ -177,7 +181,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     assert(node.vIndexExpression !== undefined);
     const baseLoc = this.actualLocations.get(node.vBaseExpression);
     assert(baseLoc !== undefined);
-    const baseType = getNodeType(node.vBaseExpression, ast.compilerVersion);
+    const baseType = safeGetNodeType(node.vBaseExpression, ast.compilerVersion);
     if (baseType instanceof FixedBytesType) {
       this.expectedLocations.set(node.vBaseExpression, DataLocation.Default);
     } else {
@@ -188,7 +192,9 @@ export class ExpectedLocationAnalyser extends ASTMapper {
       baseType.to instanceof MappingType &&
       isReferenceType(baseType.to.keyType)
     ) {
-      const indexLoc = generalizeType(getNodeType(node.vIndexExpression, ast.compilerVersion))[1];
+      const indexLoc = generalizeType(
+        safeGetNodeType(node.vIndexExpression, ast.compilerVersion),
+      )[1];
       assert(indexLoc !== undefined);
       this.expectedLocations.set(node.vIndexExpression, indexLoc);
     } else {
@@ -199,7 +205,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
 
   visitMemberAccess(node: MemberAccess, ast: AST): void {
     const baseLoc = this.actualLocations.get(node.vExpression);
-    const baseNodeType = getNodeType(node.vExpression, ast.compilerVersion);
+    const baseNodeType = safeGetNodeType(node.vExpression, ast.compilerVersion);
     assert(baseLoc !== undefined);
     if (
       (baseNodeType instanceof UserDefinedType &&
@@ -212,8 +218,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
   }
 
   visitReturn(node: Return, ast: AST): void {
-    const func = node.getClosestParentByType(FunctionDefinition);
-    assert(func !== undefined, `Unable to find containing function for ${printNode(node)}`);
+    const func = getContainingFunction(node);
     if (isExternallyVisible(func)) {
       if (node.vExpression) {
         // External functions need to read out their returns
@@ -226,7 +231,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
             : [node.vExpression];
 
         retExpressions.forEach((retExpression) => {
-          const retType = getNodeType(retExpression, ast.compilerVersion);
+          const retType = safeGetNodeType(retExpression, ast.compilerVersion);
           this.expectedLocations.set(
             retExpression,
             locationIfComplexType(retType, DataLocation.CallData),
@@ -269,7 +274,7 @@ export class ExpectedLocationAnalyser extends ASTMapper {
     if (assignedLocation === undefined) return this.visitExpression(node, ast);
 
     node.vOriginalComponents.filter(notNull).forEach((element) => {
-      const elementType = getNodeType(element, ast.compilerVersion);
+      const elementType = safeGetNodeType(element, ast.compilerVersion);
       this.expectedLocations.set(element, locationIfComplexType(elementType, assignedLocation));
     });
 

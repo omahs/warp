@@ -1,3 +1,4 @@
+export * from './abiEncode';
 export * from './abiExtractor';
 export * from './annotateImplicits';
 export * from './builtinHandler';
@@ -20,6 +21,7 @@ export * from './functionPruner';
 export * from './functionTypeStringMatcher';
 export * from './generateGetters';
 export * from './identifierManglerPass';
+export * from './identityFunctionRemover';
 export * from './ifFunctionaliser';
 export * from './implicitConversionToExplicit';
 export * from './importDirectiveIdentifier';
@@ -49,3 +51,4 @@ export * from './userDefinedTypesConverter';
 export * from './usingForResolver';
 export * from './variableDeclarationExpressionSplitter';
 export * from './variableDeclarationInitialiser';
+export * from './warnSupportedFeatures';

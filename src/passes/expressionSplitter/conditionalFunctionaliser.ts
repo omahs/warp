@@ -1,4 +1,3 @@
-import assert = require('assert');
 import {
   Assignment,
   ASTNode,
@@ -8,8 +7,6 @@ import {
   Expression,
   ExpressionStatement,
   FunctionCall,
-  FunctionDefinition,
-  getNodeType,
   Identifier,
   IfStatement,
   Mutability,
@@ -19,7 +16,6 @@ import {
   VariableDeclarationStatement,
 } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
-import { printNode } from '../../utils/astPrinter';
 import { cloneASTNode } from '../../utils/cloning';
 import { getDefaultValue } from '../../utils/defaultValueNodes';
 import { collectUnboundVariables, createOuterCall } from '../../utils/functionGeneration';
@@ -29,6 +25,7 @@ import {
   createParameterList,
   createReturn,
 } from '../../utils/nodeTemplates';
+import { safeGetNodeTypeInCtx } from '../../utils/nodeTypeProcessing';
 
 // The returns should be both the values returned by the conditional itself,
 // as well as the variables that got captured, as they could have been modified
@@ -64,12 +61,6 @@ export function getConditionalReturnVariable(
     Mutability.Mutable,
     node.typeString,
   );
-}
-
-export function getContainingFunction(node: ASTNode): FunctionDefinition {
-  const func = node.getClosestParentByType(FunctionDefinition);
-  assert(func !== undefined, `Unable to find containing function for ${printNode(node)}`);
-  return func;
 }
 
 // The inputs to the function should be only the free variables
@@ -155,7 +146,11 @@ export function addStatementsToCallFunction(
       '',
       [conditionalResult.id],
       [conditionalResult],
-      getDefaultValue(getNodeType(conditionalResult, ast.compilerVersion), conditionalResult, ast),
+      getDefaultValue(
+        safeGetNodeTypeInCtx(conditionalResult, ast.compilerVersion, node),
+        conditionalResult,
+        ast,
+      ),
     ),
     createOuterCall(node, [conditionalResult, ...variables], funcToCall, ast),
   ];

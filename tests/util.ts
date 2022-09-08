@@ -4,6 +4,14 @@ import assert from 'assert';
 import { exec } from 'child_process';
 import { expect } from 'chai';
 import BigNumber from 'bignumber.js';
+import { hashFilename, reducePath } from '../src/utils/postCairoWrite';
+import { declare } from './testnetInterface';
+import { AsyncTest } from './behaviour/expectations/types';
+
+interface AsyncTestCluster {
+  asyncTest: AsyncTest;
+  dependencies: Map<string, string[]>;
+}
 
 export async function sh(cmd: string): Promise<{ stdout: string; stderr: string }> {
   return new Promise(function (resolve, reject) {
@@ -134,4 +142,53 @@ export function encodePriceSqrt(reserve1: string, reserve0: string): string {
     .integerValue(3)
     .toString(16);
   return x;
+}
+
+const outputLocation = (fileLocation: string) =>
+  fileLocation.slice(0, -'.cairo'.length).concat('.json');
+
+export async function compileCluster(
+  test: AsyncTestCluster,
+): Promise<{ stdout: string; stderr: string }> {
+  const graph = test.dependencies;
+  const root = test.asyncTest.cairo;
+  const dependencies = graph.get(root);
+  assert(dependencies !== undefined);
+  if (dependencies.length === 0) {
+    return starknetCompile(root, test.asyncTest.compiled);
+  }
+
+  const declared = new Map<string, string>();
+  for (const fileToDeclare of dependencies) {
+    const declareHash = await compileDependencyGraph(fileToDeclare, graph, declared);
+    const fileLocationHash = hashFilename(reducePath(fileToDeclare, 'warp_output'));
+    declared.set(fileLocationHash, declareHash);
+  }
+  return starknetCompile(root, test.asyncTest.compiled);
+}
+
+// This is recursively compiling and declaring the needed files for the test.
+export async function compileDependencyGraph(
+  root: string,
+  graph: Map<string, string[]>,
+  declared: Map<string, string>,
+): Promise<string> {
+  const declaredHash = declared.get(root);
+  if (declaredHash !== undefined) {
+    return declaredHash;
+  }
+
+  const dependencies = graph.get(root);
+  if (dependencies !== undefined) {
+    for (const fileToDeclare of dependencies) {
+      const declaredHash = await compileDependencyGraph(fileToDeclare, graph, declared);
+      const fileLocationHash = hashFilename(reducePath(fileToDeclare, 'warp_output'));
+      declared.set(fileLocationHash, declaredHash);
+    }
+  }
+
+  await starknetCompile(root, outputLocation(root));
+  const hash = await declare(outputLocation(root));
+  assert(!hash.threw, 'Hash threw');
+  return hash.class_hash;
 }

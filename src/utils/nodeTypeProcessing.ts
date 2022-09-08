@@ -2,16 +2,19 @@ import assert from 'assert';
 import {
   AddressType,
   ArrayType,
+  ASTNode,
   BoolType,
   BytesType,
   DataLocation,
   EnumDefinition,
+  Expression,
   FixedBytesType,
   FunctionCall,
   FunctionCallKind,
   FunctionType,
   generalizeType,
   getNodeType,
+  getNodeTypeInCtx,
   IntType,
   MappingType,
   PackedArrayType,
@@ -24,12 +27,14 @@ import {
   TypeNameType,
   TypeNode,
   UserDefinedType,
+  VariableDeclaration,
   variableDeclarationToTypeNode,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { printNode, printTypeNode } from './astPrinter';
 import { TranspileFailedError } from './errors';
 import { error } from './formatting';
+import { getContainingSourceUnit } from './utils';
 
 /*
 Normal function calls and struct constructors require different methods for
@@ -37,7 +42,7 @@ getting the expected types of their arguments, this centralises that process
 Does not handle type conversion functions, as they don't have a specific input type
 */
 export function getParameterTypes(functionCall: FunctionCall, ast: AST): TypeNode[] {
-  const functionType = getNodeType(functionCall.vExpression, ast.compilerVersion);
+  const functionType = safeGetNodeType(functionCall.vExpression, ast.compilerVersion);
   switch (functionCall.kind) {
     case FunctionCallKind.FunctionCall:
       assert(
@@ -258,7 +263,130 @@ export function isStorageSpecificType(
   ) {
     visitedStructs.push(type.definition.id);
     return type.definition.vMembers.some((m) =>
-      isStorageSpecificType(getNodeType(m, ast.compilerVersion), ast, visitedStructs),
+      isStorageSpecificType(safeGetNodeType(m, ast.compilerVersion), ast, visitedStructs),
+    );
+  }
+  return false;
+}
+
+export function safeGetNodeType(node: Expression | VariableDeclaration, version: string): TypeNode {
+  getContainingSourceUnit(node);
+  return getNodeType(node, version);
+}
+
+export function safeGetNodeTypeInCtx(
+  arg: string | VariableDeclaration | Expression,
+  version: string,
+  ctx: ASTNode,
+): TypeNode {
+  getContainingSourceUnit(ctx);
+  return getNodeTypeInCtx(arg, version, ctx);
+}
+
+/**
+ * Given a type returns its packed solidity bytes size
+ * e.g. uint8 -> byte size is 1
+ *      address -> byte size is 20
+ *      uint16[3] -> byte size is 6
+ *      and so on
+ *  For every type whose byte size can be known on compile time
+ *  @param type Solidity type
+ *  @param version required for calculating structs byte size
+ *  @returns returns the types byte representation using packed abi encoding
+ */
+export function getPackedByteSize(type: TypeNode, version: string): number | bigint {
+  if (type instanceof IntType) {
+    return type.nBits / 8;
+  }
+  if (type instanceof FixedBytesType) {
+    return type.size;
+  }
+  if (type instanceof AddressType) {
+    return 20;
+  }
+  if (
+    type instanceof BoolType ||
+    (type instanceof UserDefinedType && type.definition instanceof EnumDefinition)
+  ) {
+    return 1;
+  }
+
+  if (type instanceof ArrayType && type.size !== undefined) {
+    return type.size * BigInt(getPackedByteSize(type.elementT, version));
+  }
+
+  const sumMemberSize = (acc: bigint, cv: TypeNode): bigint => {
+    return acc + BigInt(getPackedByteSize(cv, version));
+  };
+  if (type instanceof TupleType) {
+    return type.elements.reduce(sumMemberSize, 0n);
+  }
+
+  if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+    assert(version !== undefined, 'Struct byte size calculation requires compiler version');
+    return type.definition.vMembers
+      .map((varDecl) => getNodeType(varDecl, version))
+      .reduce(sumMemberSize, 0n);
+  }
+
+  throw new TranspileFailedError(`Cannot calculate packed byte size for ${printTypeNode(type)}`);
+}
+
+/**
+ * Given a type returns  solidity bytes size
+ * e.g. uint8, bool, address -> byte size is 32
+ *      T[] -> byte size is 32
+ *      uint16[3] -> byte size is 96
+ *      uint16[][3] -> byte size is 32
+ *      and so on
+ *  @param type Solidity type
+ *  @param version parameter required for calculating struct byte size
+ *  @returns returns the types byte representation using abi encoding
+ */
+export function getByteSize(type: TypeNode, version: string): number | bigint {
+  if (isValueType(type) || isDynamicallySized(type, version)) {
+    return 32;
+  }
+
+  if (type instanceof ArrayType) {
+    assert(type.size !== undefined);
+    return type.size * BigInt(getByteSize(type.elementT, version));
+  }
+
+  const sumMemberSize = (acc: bigint, cv: TypeNode): bigint => {
+    return acc + BigInt(getByteSize(cv, version));
+  };
+  if (type instanceof TupleType) {
+    return type.elements.reduce(sumMemberSize, 0n);
+  }
+
+  if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+    assert(version !== undefined, 'Struct byte size calculation requires compiler version');
+    return type.definition.vMembers
+      .map((varDecl) => safeGetNodeType(varDecl, version))
+      .reduce(sumMemberSize, 0n);
+  }
+
+  throw new TranspileFailedError(`Cannot calculate byte size for ${printTypeNode(type)}`);
+}
+
+export function isDynamicallySized(type: TypeNode, version: string): boolean {
+  if (isDynamicArray(type)) {
+    return true;
+  }
+  if (type instanceof PointerType) {
+    return isDynamicallySized(type.to, version);
+  }
+  if (type instanceof ArrayType) {
+    return isDynamicallySized(type.elementT, version);
+  }
+  if (type instanceof TupleType) {
+    return type.elements.some((t) => isDynamicallySized(t, version));
+  }
+  if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
+    assert(version !== undefined);
+    return type.definition.vMembers.some((v) =>
+      isDynamicallySized(safeGetNodeType(v, version), version),
     );
   }
   return false;

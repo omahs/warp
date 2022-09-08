@@ -1,3 +1,4 @@
+import assert from 'assert';
 import { ASTNode, FunctionDefinition, StructuredDocumentation } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoContract } from '../ast/cairoNodes';
@@ -11,15 +12,14 @@ import { isExternallyVisible } from '../utils/utils';
 
 export class CairoStubProcessor extends ASTMapper {
   visitFunctionDefinition(node: FunctionDefinition, _ast: AST): void {
-    let documentation = getDocString(node.documentation);
-    if (documentation === undefined) return;
+    if (!isCairoStub(node)) return;
 
-    if (documentation.split('\n')[0]?.trim() !== 'warp-cairo') return;
+    let documentation = getDocString(node.documentation);
+    assert(documentation !== undefined);
 
     documentation = processDecoratorTags(documentation);
     documentation = processStateVarTags(documentation, node);
     documentation = processInternalFunctionTag(documentation, node);
-    documentation = processLibraryFunctionTag(documentation, node);
     documentation = processCurrentFunctionTag(documentation, node);
     setDocString(node, documentation);
   }
@@ -86,27 +86,6 @@ function processInternalFunctionTag(documentation: string, node: FunctionDefinit
   });
 }
 
-function processLibraryFunctionTag(documentation: string, node: FunctionDefinition): string {
-  const contract = node.getClosestParentByType(CairoContract);
-  const errorNode = node.documentation instanceof ASTNode ? node.documentation : node;
-  if (contract === undefined) {
-    throw new WillNotSupportError(
-      `Cairo stub macro 'LIBRARYFUNC' is only allowed in member function definitions`,
-      errorNode,
-    );
-  }
-  return processMacro(documentation, /LIBRARYFUNC\((.*?)\)/g, (arg) => {
-    const funcName = node.name;
-    if (funcName.replace(/(s[0-9]+_)__warp_usrfn[0-9]+_/, '') !== arg) {
-      throw new TranspileFailedError(
-        `Library function name ${node.name} should match ${arg}`,
-        errorNode,
-      );
-    }
-    return funcName;
-  });
-}
-
 function processCurrentFunctionTag(documentation: string, node: FunctionDefinition): string {
   const contract = node.getClosestParentByType(CairoContract);
   const errorNode = node.documentation instanceof ASTNode ? node.documentation : node;
@@ -139,12 +118,6 @@ function processMacro(
   }, documentation);
 }
 
-function getDocString(doc: StructuredDocumentation | string | undefined): string | undefined {
-  if (doc === undefined) return undefined;
-  if (typeof doc === 'string') return doc;
-  return doc.text;
-}
-
 function setDocString(node: FunctionDefinition, docString: string): void {
   const existingDoc = node.documentation;
   if (existingDoc instanceof StructuredDocumentation) {
@@ -152,4 +125,17 @@ function setDocString(node: FunctionDefinition, docString: string): void {
   } else {
     node.documentation = docString;
   }
+}
+
+export function getDocString(
+  doc: StructuredDocumentation | string | undefined,
+): string | undefined {
+  if (doc === undefined) return undefined;
+  if (typeof doc === 'string') return doc;
+  return doc.text;
+}
+
+export function isCairoStub(node: FunctionDefinition): boolean {
+  const documentation = getDocString(node.documentation);
+  return documentation !== undefined && documentation.split('\n')[0]?.trim() === 'warp-cairo';
 }

@@ -7,7 +7,6 @@ import {
   Expression,
   FunctionStateMutability,
   generalizeType,
-  getNodeType,
   SourceUnit,
   StringType,
   StructDefinition,
@@ -19,7 +18,13 @@ import { printTypeNode } from '../../utils/astPrinter';
 import { CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { NotSupportedYetError, TranspileFailedError } from '../../utils/errors';
 import { createCairoFunctionStub, createCallToFunction } from '../../utils/functionGeneration';
-import { getElementType, isDynamicArray, isReferenceType } from '../../utils/nodeTypeProcessing';
+import {
+  getElementType,
+  isDynamicArray,
+  isReferenceType,
+  safeGetNodeType,
+  isStruct,
+} from '../../utils/nodeTypeProcessing';
 import { mapRange, narrowBigIntSafe, typeNameFromTypeNode } from '../../utils/utils';
 import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, StringIndexedFuncGen } from '../base';
@@ -47,7 +52,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     memoryLocation: Expression,
     nodeInSourceUnit?: ASTNode,
   ): Expression {
-    const type = generalizeType(getNodeType(storageLocation, this.ast.compilerVersion))[0];
+    const type = generalizeType(safeGetNodeType(storageLocation, this.ast.compilerVersion))[0];
 
     const name = this.getOrCreate(type);
     const functionStub = createCairoFunctionStub(
@@ -179,7 +184,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         `    let (read) = wm_read_id(mem_loc, ${uint256(2)})`,
         `    ${this.getOrCreate(type.elementT)}(storage_id, read)`,
       ].join('\n');
-    } else if (isReferenceType(type.elementT)) {
+    } else if (isStruct(type.elementT)) {
       copyCode = [
         `    let (read) = wm_read_id{dict_ptr=warp_memory}(mem_loc, ${uint256(
           elementMemoryWidth,
@@ -346,7 +351,7 @@ function generateCopyInstructions(type: TypeNode, ast: AST): CopyInstruction[] {
   let members: TypeNode[];
 
   if (type instanceof UserDefinedType && type.definition instanceof StructDefinition) {
-    members = type.definition.vMembers.map((decl) => getNodeType(decl, ast.compilerVersion));
+    members = type.definition.vMembers.map((decl) => safeGetNodeType(decl, ast.compilerVersion));
   } else if (type instanceof ArrayType && type.size !== undefined) {
     const narrowedWidth = narrowBigIntSafe(type.size, `Array size ${type.size} not supported`);
     members = mapRange(narrowedWidth, () => type.elementT);

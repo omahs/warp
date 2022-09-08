@@ -4,6 +4,7 @@ import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
 import {
+  ABIEncode,
   ABIExtractor,
   AnnotateImplicits,
   ArgBoundChecker,
@@ -21,8 +22,10 @@ import {
   ExternalContractHandler,
   FilePathMangler,
   FreeFunctionInliner,
+  FunctionPruner,
   FunctionTypeStringMatcher,
   IdentifierMangler,
+  IdentityFunctionRemover,
   IfFunctionaliser,
   ImplicitConversionToExplicit,
   ImportDirectiveIdentifier,
@@ -50,16 +53,16 @@ import {
   TypeNameRemover,
   TypeStringsChecker,
   UnloadingAssignment,
-  UnreachableFunctionPruner,
   UnreachableStatementPruner,
   UserDefinedTypesConverter,
   UsingForResolver,
   VariableDeclarationExpressionSplitter,
   VariableDeclarationInitialiser,
+  WarnSupportedFeatures,
 } from './passes';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
-import { createPassMap, parsePassOrder } from './utils/cliOptionParsing';
+import { createPassMap, parsePassOrder } from './utils/cli';
 import { TranspilationAbandonedError, TranspileFailedError } from './utils/errors';
 import { error, removeExcessNewlines } from './utils/formatting';
 import { printCompileErrors, runSanityCheck } from './utils/utils';
@@ -99,6 +102,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['Tf', TupleFixes],
     ['Tnr', TypeNameRemover],
     ['Ru', RejectUnsupportedFeatures],
+    ['Wa', WarnSupportedFeatures],
     ['Fm', FilePathMangler],
     ['Ss', SourceUnitSplitter],
     ['Ct', TypeStringsChecker],
@@ -128,12 +132,14 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['R', ReturnInserter],
     ['Rv', ReturnVariableInitializer],
     ['If', IfFunctionaliser],
+    ['Ifr', IdentityFunctionRemover],
     ['T', TupleAssignmentSplitter],
     ['U', UnloadingAssignment],
     ['V', VariableDeclarationInitialiser],
     ['Vs', VariableDeclarationExpressionSplitter],
-    ['I', ImplicitConversionToExplicit],
     ['Ntd', NewToDeploy],
+    ['I', ImplicitConversionToExplicit],
+    ['Abi', ABIEncode],
     ['Dh', DeleteHandler],
     ['Rf', References],
     ['Abc', ArgBoundChecker],
@@ -141,7 +147,7 @@ function applyPasses(ast: AST, options: TranspilationOptions & PrintOptions): AS
     ['B', BuiltinHandler],
     ['Bc', BytesConverter],
     ['Us', UnreachableStatementPruner],
-    ['Fp', UnreachableFunctionPruner],
+    ['Fp', FunctionPruner],
     ['E', ExpressionSplitter],
     ['An', AnnotateImplicits],
     ['Ci', CairoUtilImporter],

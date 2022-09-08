@@ -5,9 +5,9 @@ import {
   ArrayType,
   ArrayTypeName,
   generalizeType,
-  getNodeType,
   Literal,
   SourceUnit,
+  StateVariableVisibility,
 } from 'solc-typed-ast';
 import Web3 from 'web3';
 import { AST } from '../ast/ast';
@@ -18,6 +18,7 @@ import { CLIError } from '../utils/errors';
 import { parse } from '../utils/functionSignatureParser';
 import { generateLiteralTypeString } from '../utils/getTypeString';
 import { createDefaultConstructor, createNumberLiteral } from '../utils/nodeTemplates';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../utils/utils';
 
 type Input = (string | number | Input)[];
@@ -55,6 +56,12 @@ export class ABIExtractor extends ASTMapper {
             addSignature(node, ast, fd.canonicalSignature('ABIEncoderV2'));
           }
         });
+        cd.vStateVariables.forEach((vd) => {
+          if (vd.visibility === StateVariableVisibility.Public) {
+            // @ts-ignore Importing the ABIEncoderVersion enum causes a depenency import error
+            addSignature(node, ast, vd.getterCanonicalSignature('ABIEncoderV2'));
+          }
+        });
       });
   }
 
@@ -64,7 +71,7 @@ export class ABIExtractor extends ASTMapper {
     this.commonVisit(node, ast);
 
     if (node.vLength !== undefined && !(node.vLength instanceof Literal)) {
-      const type = generalizeType(getNodeType(node, ast.compilerVersion))[0];
+      const type = generalizeType(safeGetNodeType(node, ast.compilerVersion))[0];
       assert(
         type instanceof ArrayType,
         `${printNode(node)} ${node.typeString} has non-array type ${printTypeNode(type, true)}`,
@@ -102,10 +109,10 @@ export async function encodeInputs(
   filePath: string,
   func: string,
   useCairoABI: boolean,
-  rawInputs?: string,
+  rawInputs?: string[],
 ): Promise<[string, string]> {
   if (useCairoABI) {
-    const inputs = rawInputs ? `--inputs ${rawInputs.split(',').join(' ')}` : '';
+    const inputs = rawInputs ? `--inputs ${rawInputs.join(' ').split(',').join(' ')}` : '';
     return [func, inputs];
   }
 
@@ -115,7 +122,7 @@ export async function encodeInputs(
 
   const funcName = `${func}_${selector}`;
   const inputs = rawInputs
-    ? `--inputs ${transcodeCalldata(funcSignature, parseInputs(rawInputs))
+    ? `--inputs ${transcodeCalldata(funcSignature, parseInputs(rawInputs.join(' ')))
         .map((i) => i.toString())
         .join(' ')}`
     : '';

@@ -57,6 +57,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/conditional', 'WillNotSupport'],
     ['example_contracts/contract_to_contract', 'Success'],
     ['example_contracts/calldatacopy', 'WillNotSupport'],
+    ['example_contracts/calldataCrossContractCalls', 'Success'],
     ['example_contracts/calldataload', 'WillNotSupport'],
     ['example_contracts/calldatasize', 'WillNotSupport'],
     ['example_contracts/comments', 'Success'],
@@ -113,6 +114,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/idManglingTest8', 'Success'],
     ['example_contracts/idManglingTest9', 'Success'],
     ['example_contracts/if_flattening', 'Success'],
+    ['example_contracts/implicitsFromStub', 'Success'],
     ['example_contracts/imports/importContract', 'Success'],
     ['example_contracts/imports/importEnum', 'Success'],
     ['example_contracts/imports/importfrom', 'Success'],
@@ -197,6 +199,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/unsupportedFunctions/keccak256', `Success`],
     ['example_contracts/unsupportedFunctions/ecrecover', `Success`],
     ['example_contracts/unsupportedFunctions/addmod', `Success`],
+    ['example_contracts/unsupportedFunctions/gasleft', `WillNotSupport`],
     // Supported precompiles
     ['example_contracts/precompiles/ecrecover', 'Success'],
     ['example_contracts/precompiles/keccak256', 'Success'],
@@ -211,6 +214,7 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/using_for/imports/user_defined', 'Success'],
     // global_directive.sol cannot resolve struct when file imported as identifier
     ['example_contracts/using_for/imports/global_directive', 'Success'],
+    ['example_contracts/using_for/complex_libraries', 'Success'],
     ['example_contracts/using_for/function', 'WillNotSupport'],
     ['example_contracts/using_for/private', 'Success'],
     ['example_contracts/using_for/library', 'Success'],
@@ -222,6 +226,16 @@ const expectedResults = new Map<string, ResultType>(
     ['example_contracts/variable_declarations', 'Success'],
     ['example_contracts/view_function', 'Success'],
     ['example_contracts/typestrings/enumArrays', 'Success'],
+    //uses 'this' keyword in the constructor
+    [
+      'example_contracts/this_at_constructor/external_function_call_at_construction',
+      'WillNotSupport',
+    ],
+    [
+      'example_contracts/this_at_constructor/multiple_external_function_calls_at_construction',
+      'WillNotSupport',
+    ],
+    ['example_contracts/this_at_constructor/valid_this_use_at_constructor', 'Success'],
   ].map(([key, result]) => {
     return [manglePath(key), result] as [string, ResultType];
   }),

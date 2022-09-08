@@ -1,9 +1,12 @@
 import assert from 'assert';
+import * as path from 'path';
+import { execSync } from 'child_process';
 import {
   AddressType,
   ArrayType,
   ArrayTypeName,
   Assignment,
+  ASTNode,
   BoolType,
   BytesType,
   CompileFailedError,
@@ -19,7 +22,6 @@ import {
   FunctionStateMutability,
   FunctionVisibility,
   generalizeType,
-  getNodeType,
   Identifier,
   IdentifierPath,
   IndexAccess,
@@ -33,6 +35,7 @@ import {
   PointerType,
   Return,
   SourceLocation,
+  SourceUnit,
   StateVariableVisibility,
   StringType,
   StructDefinition,
@@ -47,21 +50,20 @@ import {
 import Web3 from 'web3';
 import { AST } from '../ast/ast';
 import { isSane } from './astChecking';
-import { printTypeNode } from './astPrinter';
+import { printNode, printTypeNode } from './astPrinter';
 import {
   logError,
   NotSupportedYetError,
   TranspileFailedError,
   WillNotSupportError,
 } from './errors';
-import { error } from './formatting';
 import {
   createAddressTypeName,
   createBoolTypeName,
   createBytesTypeName,
   createNumberLiteral,
 } from './nodeTemplates';
-import { isDynamicArray, isDynamicCallDataArray } from './nodeTypeProcessing';
+import { isDynamicArray, isDynamicCallDataArray, safeGetNodeType } from './nodeTypeProcessing';
 import { Class } from './typeConstructs';
 
 const uint128 = BigInt('0x100000000000000000000000000000000');
@@ -428,7 +430,7 @@ export function isExternalMemoryDynArray(node: Identifier, compilerVersion: stri
     return false;
 
   const declarationLocation = declaration.storageLocation;
-  const [nodeType, typeLocation] = generalizeType(getNodeType(node, compilerVersion));
+  const [nodeType, typeLocation] = generalizeType(safeGetNodeType(node, compilerVersion));
 
   return (
     isDynamicArray(nodeType) &&
@@ -440,7 +442,7 @@ export function isExternalMemoryDynArray(node: Identifier, compilerVersion: stri
 // Detects when an identifier represents a calldata dynamic array in solidity
 export function isCalldataDynArrayStruct(node: Identifier, compilerVersion: string): boolean {
   return (
-    isDynamicCallDataArray(getNodeType(node, compilerVersion)) &&
+    isDynamicCallDataArray(safeGetNodeType(node, compilerVersion)) &&
     ((node.getClosestParentByType(Return) !== undefined &&
       node.getClosestParentByType(IndexAccess) === undefined &&
       node.getClosestParentByType(FunctionDefinition)?.visibility === FunctionVisibility.External &&
@@ -452,31 +454,100 @@ export function isCalldataDynArrayStruct(node: Identifier, compilerVersion: stri
   );
 }
 
-export function getSourceFromLocation(source: string, location: SourceLocation): string {
-  const linesAroundSource = 2;
-  const sourceBeforeLocation = source.substring(0, location.offset).split('\n');
-  const sourceAfterLocation = source.substring(location.offset).split('\n');
-  const startLineNum = sourceBeforeLocation.length - linesAroundSource;
+/**
+ * Given a source file and some nodes, prints them
+ * @param source solidity path to file
+ * @param locations nodes source locations
+ * @param highlightFunc function that highlight the nodes text locations
+ * @param surroundingLines lines surrounding highlighted lines
+ * @returns text with highlights
+ */
+export function getSourceFromLocations(
+  source: string,
+  locations: SourceLocation[],
+  highlightFunc: (text: string) => string,
+  surroundingLines = 2,
+): string {
+  let textWalked = 0;
+  let locIndex = 0;
+  const lines = source.split('\n').reduce((lines, currentLine, lineNum) => {
+    const maxWalk = textWalked + currentLine.length + 1;
+    let marked = false;
+    let newLine = `${lineNum}\t`;
+    while (
+      locIndex < locations.length &&
+      textWalked + currentLine.length >= locations[locIndex].offset + locations[locIndex].length
+    ) {
+      const currentLocation = locations[locIndex];
+      newLine =
+        newLine +
+        source.substring(textWalked, currentLocation.offset) +
+        highlightFunc(
+          source.substring(currentLocation.offset, currentLocation.offset + currentLocation.length),
+        );
 
-  const [previousLines, currentLineNum] = sourceBeforeLocation
-    .slice(sourceBeforeLocation.length - (linesAroundSource + 1), sourceBeforeLocation.length - 1)
-    .reduce(
-      ([s, n], c) => [[...s, `${n}  ${c}`], n + 1],
-      [new Array<string>(), startLineNum < 0 ? 0 : startLineNum],
+      textWalked = currentLocation.offset + currentLocation.length;
+      locIndex += 1;
+      marked = true;
+    }
+
+    newLine = newLine + source.substring(textWalked, maxWalk);
+    textWalked = maxWalk;
+    lines.push([newLine, marked]);
+    return lines;
+  }, new Array<[string, boolean]>());
+
+  let lastLineMarked = 0;
+  const filteredLines: string[] = [];
+  for (let index = 0; index < lines.length; index++) {
+    const [, marked] = lines[index];
+    if (!marked) continue;
+
+    if (index - (lastLineMarked + surroundingLines) > surroundingLines) {
+      filteredLines.push('\t................\n');
+    }
+    lastLineMarked = index;
+
+    filteredLines.push(
+      ...lines
+        .slice(
+          index - surroundingLines > 0 ? index - surroundingLines : 0,
+          index + surroundingLines,
+        )
+        .map((l) => l[0])
+        .filter((l) => !filteredLines.includes(l)),
     );
+  }
 
-  const [currentLine, followingLineNum] = [
-    sourceBeforeLocation.slice(-1),
-    error(source.substring(location.offset, location.offset + location.length)),
-    sourceAfterLocation[0].substring(location.length),
-  ]
-    .join('')
-    .split('\n')
-    .reduce(([s, n], c) => [[...s, `${n}  ${c}`], n + 1], [new Array<string>(), currentLineNum]);
+  return filteredLines.join('');
+}
 
-  const [followingLines] = sourceAfterLocation
-    .slice(currentLine.length, currentLine.length + linesAroundSource)
-    .reduce(([s, n], c) => [[...s, `${n}  ${c}`], n + 1], [new Array<string>(), followingLineNum]);
+export function callClassHashScript(filePath: string): string {
+  const warpVenvPrefix = `PATH=${path.resolve(__dirname, '..', '..', 'warp_venv', 'bin')}:$PATH`;
+  const classHashScriptPath = path.resolve(
+    __dirname,
+    '..',
+    '..',
+    'starknet-scripts',
+    'compute_class_hash.py',
+  );
+  const classHash = execSync(`${warpVenvPrefix} python ${classHashScriptPath} ${filePath}`)
+    .toString()
+    .trim();
+  if (classHash === undefined) {
+    throw new Error(`Cannot calculate class hash.`);
+  }
+  return classHash;
+}
 
-  return [...previousLines, ...currentLine, ...followingLines].join('\n');
+export function getContainingFunction(node: ASTNode): FunctionDefinition {
+  const func = node.getClosestParentByType(FunctionDefinition);
+  assert(func !== undefined, `Unable to find containing function for ${printNode(node)}`);
+  return func;
+}
+
+export function getContainingSourceUnit(node: ASTNode): SourceUnit {
+  const root = node.getClosestParentByType(SourceUnit);
+  assert(root !== undefined, `Unable to find root source unit for ${printNode(node)}`);
+  return root;
 }
