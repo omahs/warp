@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.12;
+pragma solidity 0.8;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "../openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @dev Hop Bridge Tokens or "hTokens" are layer-2 tokens that represent a deposit in the L1_Bridge
@@ -18,7 +18,6 @@ contract HopBridgeToken is ERC20, Ownable {
         string memory symbol,
         uint8 decimals
     )
-        public
         ERC20(name, symbol)
     {
         _setupDecimals(decimals);

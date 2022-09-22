@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.12;
+pragma solidity 0.8;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../saddle/Swap.sol";
 import "./L2_Bridge.sol";
 import "../interfaces/IWETH.sol";
