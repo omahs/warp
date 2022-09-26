@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity =0.7.6;
+pragma solidity ^0.8.14;
 pragma abicoder v2;
 
 import './OracleTest.sol';
@@ -61,7 +61,7 @@ contract OracleEchidnaTest {
 
         (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s) =
             oracle.observe(secondsAgos);
-        int56 timeWeightedTick = (tickCumulatives[1] - tickCumulatives[0]) / timeElapsed;
+        int56 timeWeightedTick = (tickCumulatives[1] - tickCumulatives[0]) / int56(uint56(timeElapsed));
         uint256 timeWeightedHarmonicMeanLiquidity =
             (uint256(timeElapsed) * type(uint160).max) /
                 (uint256(secondsPerLiquidityCumulativeX128s[1] - secondsPerLiquidityCumulativeX128s[0]) << 32);
@@ -89,8 +89,8 @@ contract OracleEchidnaTest {
         }
         uint32[] memory arr = new uint32[](1);
         arr[0] = 0;
-        (bool success, ) = address(oracle).staticcall(abi.encodeWithSelector(OracleTest.observe.selector, arr));
-        return success;
+        oracle.observe(arr);
+        return true;
     }
 
     function checkTwoAdjacentObservationsTickCumulativeModTimeElapsedAlways0(uint16 index) external view {
@@ -107,7 +107,7 @@ contract OracleEchidnaTest {
 
         uint32 timeElapsed = blockTimestamp1 - blockTimestamp0;
         assert(timeElapsed > 0);
-        assert((tickCumulative1 - tickCumulative0) % timeElapsed == 0);
+        assert((tickCumulative1 - tickCumulative0) % int56(uint56(timeElapsed)) == 0);
     }
 
     function conditional(uint16 index, uint16 cardinality) internal pure returns (uint16) {
@@ -129,8 +129,8 @@ contract OracleEchidnaTest {
 
         // compute the time weighted tick, rounded towards negative infinity
         int56 numerator = tickCumulatives[1] - tickCumulatives[0];
-        int56 timeWeightedTick = numerator / int56(secondsAgo);
-        if (numerator < 0 && numerator % int56(secondsAgo) != 0) {
+        int56 timeWeightedTick = numerator / int56(uint56(secondsAgo));
+        if (numerator < 0 && numerator % int56(uint56(secondsAgo)) != 0) {
             timeWeightedTick--;
         }
 

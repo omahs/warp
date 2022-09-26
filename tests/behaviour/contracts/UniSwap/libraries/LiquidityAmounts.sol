@@ -68,7 +68,11 @@ library LiquidityAmounts {
             uint128 liquidity0 = getLiquidityForAmount0(sqrtRatioX96, sqrtRatioBX96, amount0);
             uint128 liquidity1 = getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioX96, amount1);
 
-            liquidity = liquidity0 < liquidity1 ? liquidity0 : liquidity1;
+            if (liquidity0 < liquidity1) {
+              liquidity = liquidity0;
+            } else {
+              liquidity = liquidity1;
+            }
         } else {
             liquidity = getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioBX96, amount1);
         }

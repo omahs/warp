@@ -17,7 +17,7 @@ interface IUniswapV3PoolActions {
     /// @param tickLower The lower tick of the position in which to add liquidity
     /// @param tickUpper The upper tick of the position in which to add liquidity
     /// @param amount The amount of liquidity to mint
-    /// @param sender sender to be sent to the callback
+    /// @param data data to be sent to the callback
     /// @return amount0 The amount of token0 that was paid to mint the given amount of liquidity. Matches the value in the callback
     /// @return amount1 The amount of token1 that was paid to mint the given amount of liquidity. Matches the value in the callback
     function mint(
@@ -25,8 +25,7 @@ interface IUniswapV3PoolActions {
         int24 tickLower,
         int24 tickUpper,
         uint128 amount,
-        address sender
-        // bytes calldata data
+        bytes calldata data
     ) external returns (uint256 amount0, uint256 amount1);
 
     /// @notice Collects tokens owed to a position
@@ -77,7 +76,7 @@ interface IUniswapV3PoolActions {
         bool zeroForOne,
         int256 amountSpecified,
         uint160 sqrtPriceLimitX96,
-        address sender
+        bytes calldata data
     ) external returns (int256 amount0, int256 amount1);
 
     /// @notice Receive token0 and/or token1 and pay it back, plus a fee, in the callback
@@ -91,9 +90,7 @@ interface IUniswapV3PoolActions {
         address recipient,
         uint256 amount0,
         uint256 amount1,
-        address sender,
-        uint256 pay0,
-        uint256 pay1
+        bytes calldata data
     ) external;
 
     /// @notice Increase the maximum number of price and liquidity observations that this pool will store

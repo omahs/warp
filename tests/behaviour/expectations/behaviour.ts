@@ -8,6 +8,25 @@ export const expectations = flatten(
       new Dir('contracts', [
         new Dir('UniSwap', [
           // Creating Callee Contract Because it needs approval.
+          new Dir('test', [
+            File.Simple(
+              'MockTimeUniswapV3PoolDeployer',
+              [
+                Expect.Simple(
+                  'deploy',
+                  [
+                    '0x071de96cc10e76bef0ae4f25d778e7068b513be616a5f45f3499d5a79db3e81c',
+                    '0x1',
+                    '0x1',
+                    '0x1',
+                    '0x1',
+                  ],
+                  [],
+                ),
+              ],
+              'MockTimeUniswapV3PoolDeployer',
+            ),
+          ]),
           new File('TestUniswapV3Callee', 'TestUniswapV3Callee', [], []),
           //Creating Tokens/Miniting
           File.Simple(
