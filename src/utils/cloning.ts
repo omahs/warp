@@ -41,6 +41,7 @@ import {
   FunctionTypeName,
   FunctionCallOptions,
   Expression,
+  EnumDefinition,
 } from 'solc-typed-ast';
 import { AST } from '../ast/ast';
 import { CairoAssert, CairoFunctionDefinition } from '../ast/cairoNodes';
@@ -471,6 +472,15 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.vOverrideSpecifier && cloneASTNodeImpl(node.vOverrideSpecifier, ast, remappedIds),
       node.vValue && cloneASTNodeImpl(node.vValue, ast, remappedIds),
       node.nameLocation,
+    );
+  }  else if (node instanceof EnumDefinition) {
+    newNode = new EnumDefinition(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.name,
+      node.vMembers.map((v) => cloneASTNodeImpl(v, ast, remappedIds)),
+      node.nameLocation,
+      node.raw,
     );
     //ASTNodeWithChildren------------------------------------------------------
   } else if (node instanceof ParameterList) {
