@@ -473,7 +473,7 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.vValue && cloneASTNodeImpl(node.vValue, ast, remappedIds),
       node.nameLocation,
     );
-  }  else if (node instanceof EnumDefinition) {
+  } else if (node instanceof EnumDefinition) {
     newNode = new EnumDefinition(
       replaceId(node.id, ast, remappedIds),
       node.src,
@@ -491,6 +491,14 @@ function cloneASTNodeImpl<T extends ASTNode>(
       node.raw,
     );
     //Misc---------------------------------------------------------------------
+  } else if (node instanceof StructuredDocumentation) {
+    // TODO: convert all string instances of ducmentation to StrutcutredDocuemntation
+    newNode = new StructuredDocumentation(
+      replaceId(node.id, ast, remappedIds),
+      node.src,
+      node.text,
+      node.raw,
+    );
   } else if (node instanceof IdentifierPath) {
     newNode = new IdentifierPath(
       replaceId(node.id, ast, remappedIds),
