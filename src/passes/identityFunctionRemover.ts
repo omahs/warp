@@ -1,5 +1,6 @@
 import assert from 'assert';
 import {
+  ContractDefinition,
   Expression,
   FunctionCall,
   FunctionDefinition,
@@ -10,7 +11,7 @@ import {
 import { AST } from '../ast/ast';
 import { ASTMapper } from '../ast/mapper';
 import { printNode } from '../utils/astPrinter';
-import { isExternallyVisible, toSingleExpression } from '../utils/utils';
+import { isExternallyVisible, toSingleExpression, isLibraryCloned } from '../utils/utils';
 
 /*
     The purpose of this pass is to remove non externally visible functions which have only 
@@ -39,7 +40,11 @@ export class IdentityFunctionRemover extends ASTMapper {
   }
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST) {
-    if (!isExternallyVisible(node) && this.isIdentity(node)) {
+    if (
+      !isLibraryCloned(node.parent as ContractDefinition) &&
+      !isExternallyVisible(node) &&
+      this.isIdentity(node)
+    ) {
       const order = this.getArgsOrder(node);
       this.replaceNodeReferences(node, order, ast);
 

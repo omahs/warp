@@ -3,7 +3,7 @@ import { ContractDefinition, FunctionDefinition } from 'solc-typed-ast';
 import { AST } from '../../ast/ast';
 import { ASTMapper } from '../../ast/mapper';
 import { printNode } from '../../utils/astPrinter';
-import { isExternallyVisible } from '../../utils/utils';
+import { isExternallyVisible, isLibraryCloned } from '../../utils/utils';
 
 export class FunctionRemover extends ASTMapper {
   functionGraph: Map<number, FunctionDefinition[]>;
@@ -14,6 +14,8 @@ export class FunctionRemover extends ASTMapper {
   }
 
   visitContractDefinition(node: ContractDefinition, _ast: AST) {
+    if (isLibraryCloned(node)) return;
+
     const reachableFunctions: Set<number> = new Set();
     // Collect visible functions and obtain ids of all reachable functions
     node.vFunctions

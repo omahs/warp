@@ -11,6 +11,7 @@ import {
   BytesType,
   CompileFailedError,
   ContractDefinition,
+  ContractKind,
   DataLocation,
   ElementaryTypeName,
   EtherUnit,
@@ -65,6 +66,7 @@ import {
 } from './nodeTemplates';
 import { isDynamicArray, isDynamicCallDataArray, safeGetNodeType } from './nodeTypeProcessing';
 import { Class } from './typeConstructs';
+import { LIBRARY_CONTRACT_PREFIX } from './nameModifiers';
 
 const uint128 = BigInt('0x100000000000000000000000000000000');
 
@@ -327,6 +329,10 @@ export function isExternallyVisible(node: FunctionDefinition): boolean {
   return (
     node.visibility === FunctionVisibility.External || node.visibility === FunctionVisibility.Public
   );
+}
+
+export function isLibraryCloned(node: ContractDefinition): boolean {
+  return node.kind === ContractKind.Contract && node.name.startsWith(LIBRARY_CONTRACT_PREFIX);
 }
 
 export function toSingleExpression(expressions: Expression[], ast: AST): Expression {
