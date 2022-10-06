@@ -503,6 +503,24 @@ export const expectations = flatten(
             Expect.Simple('f', ['10', '0', '1'], ['1', '0']),
             Expect.Simple('f', ['4', '0', '1'], ['5', '0']),
           ]),
+          File.Simple('conditionals', [
+            Expect.Simple('returnStr', ['1'], ['4', '87', '65', '82', '80']),
+            Expect.Simple('updateVar', ['1'], ['20', '0', '46', '0']),
+            Expect.Simple('updateVar', ['0'], ['15', '0', '50', '0']),
+          ]),
+          File.Simple('useValues', [
+            Expect.Simple('useValues', ['1'], ['3', '4']),
+            Expect.Simple('useValues', ['0'], ['1', '2']),
+          ]),
+          File.Simple('voidReturn', [
+            Expect.Simple('x', [], ['0', '0']),
+            Expect.Simple('voidReturn', [], []),
+            Expect.Simple('x', [], ['5', '0']),
+            Expect.Simple('voidReturn', [], []),
+            Expect.Simple('x', [], ['10', '0']),
+            Expect.Simple('voidReturn', [], []),
+            Expect.Simple('x', [], ['0', '0']),
+          ]),
           new File(
             'nested_and_or',
             'WARP',
@@ -2037,6 +2055,14 @@ export const expectations = flatten(
           ]),
         ]),
         new Dir('expressions', [
+          File.Simple('assign_split', [
+            Expect.Simple('plusEqual', [], ['60', '0']),
+            Expect.Simple('starEqual', [], ['20', '0']),
+            Expect.Simple('equal', [], ['4', '0']),
+            Expect.Simple('plusEqualTotal', ['10', '0'], ['75', '0']),
+            Expect.Simple('starEqualTotal', ['5', '0'], ['30', '0']),
+            Expect.Simple('equalTotal', ['10', '0'], ['16', '0']),
+          ]),
           File.Simple('assignments_as_rvalues', [
             Expect.Simple('addingLocalAssignments', ['5', '11'], ['16']),
             Expect.Simple('addingStorageAssignments', ['5', '11'], ['16', '0']),
@@ -2096,6 +2122,12 @@ export const expectations = flatten(
             Expect.Simple('shiftRight', [], ['1']),
             Expect.Simple('bitwiseNegate', [], ['253']),
             Expect.Simple('toInteger', [], ['3']),
+          ]),
+          File.Simple('short_circuit', [
+            Expect.Simple('and_sc', [], ['56', '0']),
+            Expect.Simple('and_no_sc', [], ['1', '0']),
+            Expect.Simple('or_sc', [], ['56', '0']),
+            Expect.Simple('or_no_sc', [], ['15', '0']),
           ]),
           File.Simple('tupleEdgeCases', [Expect.Simple('f', ['0', '0'], ['0', '0'])]),
           File.Simple('tupleOfInlineArrays', [Expect.Simple('g', [], ['21'])]),
@@ -2805,6 +2837,12 @@ export const expectations = flatten(
               ],
             ),
             new File(
+              'inheritedModifiedFunction',
+              'B',
+              [],
+              [Expect.Simple('f', ['20', '0'], ['20', '0'])],
+            ),
+            new File(
               'modifierInheritance',
               'D',
               [],
@@ -3344,6 +3382,12 @@ export const expectations = flatten(
             Expect.Simple('f', ['90000', '0'], ['10000', '0']),
             Expect.Simple('f', ['110000', '0'], ['0', '0']),
           ]),
+          File.Simple('modifierRecursive', [
+            new Expect('modifier', [
+              ['fact', ['5', '0'], ['120', '0'], '0'],
+              ['called', [], ['6', '0'], '0'],
+            ]),
+          ]),
           File.Simple('modifierWithReturn', [
             Expect.Simple('returnFiveThroughModifiers', [], ['5']),
           ]),
@@ -3583,6 +3627,10 @@ export const expectations = flatten(
               ],
             ),
           ]),
+        ]),
+        new Dir('preExpressionSplitter', [
+          File.Simple('assign_simple', [Expect.Simple('f', [], ['10', ''])]),
+          File.Simple('assign_simple', [Expect.Simple('g', [], ['15', ''])]),
         ]),
         new Dir('returns', [
           File.Simple('initialiseStorageReturns', [

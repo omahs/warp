@@ -3,43 +3,30 @@ import {
   Assignment,
   ContractDefinition,
   DataLocation,
-  Conditional,
   ExpressionStatement,
   FunctionCall,
   FunctionDefinition,
-  FunctionVisibility,
   Identifier,
   Mutability,
   StateVariableVisibility,
   VariableDeclaration,
   VariableDeclarationStatement,
   generalizeType,
-  FunctionKind,
 } from 'solc-typed-ast';
-import { AST } from '../../ast/ast';
-import { ASTMapper } from '../../ast/mapper';
-import { printNode } from '../../utils/astPrinter';
-import { cloneASTNode } from '../../utils/cloning';
-import { TranspileFailedError } from '../../utils/errors';
-import { createCallToFunction, fixParameterScopes } from '../../utils/functionGeneration';
-import { SPLIT_EXPRESSION_PREFIX } from '../../utils/nameModifiers';
+import { AST } from '../ast/ast';
+import { ASTMapper } from '../ast/mapper';
+import { printNode } from '../utils/astPrinter';
+import { cloneASTNode } from '../utils/cloning';
+import { TranspileFailedError } from '../utils/errors';
+import { SPLIT_EXPRESSION_PREFIX } from '../utils/nameModifiers';
 import {
   createEmptyTuple,
   createExpressionStatement,
   createIdentifier,
   createVariableDeclarationStatement,
-} from '../../utils/nodeTemplates';
-import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
-import { counterGenerator, getContainingFunction } from '../../utils/utils';
-import {
-  addStatementsToCallFunction,
-  createFunctionBody,
-  getConditionalReturnVariable,
-  getInputs,
-  getNodeVariables,
-  getParams,
-  getReturns,
-} from './conditionalFunctionaliser';
+} from '../utils/nodeTemplates';
+import { safeGetNodeType } from '../utils/nodeTypeProcessing';
+import { counterGenerator } from '../utils/utils';
 
 function* expressionGenerator(prefix: string): Generator<string, string, unknown> {
   const count = counterGenerator();
@@ -50,12 +37,15 @@ function* expressionGenerator(prefix: string): Generator<string, string, unknown
 
 export class ExpressionSplitter extends ASTMapper {
   eGen = expressionGenerator(SPLIT_EXPRESSION_PREFIX);
-  funcNameCounter = 0;
-  varNameCounter = 0;
 
   // Function to add passes that should have been run before this pass
   addInitialPassPrerequisites(): void {
-    const passKeys: Set<string> = new Set<string>([]);
+    const passKeys: Set<string> = new Set<string>([
+      // Conditionals must have been handled before this pass, otherwise
+      // both branches of the conditional might get evaluated when they are
+      // extracted by the splitter.
+      'Cos',
+    ]);
     passKeys.forEach((key) => this.addPassPrerequisite(key));
   }
 
@@ -78,8 +68,8 @@ export class ExpressionSplitter extends ASTMapper {
         '',
         false, // constant
         false, // indexed
-        this.eGen.next().value, //name
-        ast.getContainingScope(node), //scope
+        this.eGen.next().value,
+        ast.getContainingScope(node),
         false, // stateVariable
         location,
         StateVariableVisibility.Internal,
@@ -123,7 +113,7 @@ export class ExpressionSplitter extends ASTMapper {
       const parent = node.parent;
       assert(parent !== undefined, `${printNode(node)} ${node.vFunctionName} has no parent`);
       ast.replaceNode(node, createEmptyTuple(ast));
-      ast.insertStatementBefore(parent, new ExpressionStatement(ast.reserveId(), '', node));
+      ast.insertStatementBefore(parent, createExpressionStatement(ast, node));
     } else if (returnTypes.length === 1) {
       assert(
         returnTypes[0].vType !== undefined,
@@ -137,51 +127,6 @@ export class ExpressionSplitter extends ASTMapper {
         )} ${node.vFunctionName} has ${returnTypes.length}`,
       );
     }
-  }
-
-  visitConditional(node: Conditional, ast: AST) {
-    const containingFunction = getContainingFunction(node);
-    const variables = getNodeVariables(node);
-    const inputs = getInputs(variables, ast);
-    const params = getParams(variables, ast);
-    const newFuncId = ast.reserveId();
-    const returns = getReturns(node, variables, newFuncId, this.varNameCounter++, ast);
-
-    const func = new FunctionDefinition(
-      newFuncId,
-      '',
-      containingFunction.scope,
-      containingFunction.kind === FunctionKind.Free ? FunctionKind.Free : FunctionKind.Function,
-      `_conditional${this.funcNameCounter++}`,
-      false, // virtual
-      FunctionVisibility.Internal,
-      containingFunction.stateMutability,
-      false, // isConstructor
-      params,
-      returns,
-      [],
-      undefined,
-      createFunctionBody(node, returns, ast),
-    );
-    fixParameterScopes(func);
-    containingFunction.vScope.insertBefore(func, containingFunction);
-    ast.registerChild(func, containingFunction.vScope);
-    this.dispatchVisit(func, ast);
-
-    const conditionalResult = getConditionalReturnVariable(
-      node,
-      containingFunction.id,
-      this.varNameCounter++,
-      ast,
-    );
-    addStatementsToCallFunction(
-      node,
-      conditionalResult,
-      [...variables.keys()],
-      createCallToFunction(func, inputs, ast),
-      ast,
-    );
-    ast.replaceNode(node, createIdentifier(conditionalResult, ast));
   }
 }
 
