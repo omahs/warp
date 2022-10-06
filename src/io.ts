@@ -2,10 +2,9 @@ import { execSync } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { OutputOptions } from '.';
-import { compileCairo } from './starknetCli';
 import { TranspileFailedError, logError } from './utils/errors';
 
-export const solABIPrefix = '# Original soldity abi:';
+export const solABIPrefix = '// Original soldity abi:';
 
 export function isValidSolFile(path: string, printError = true): boolean {
   if (!fs.existsSync(path)) {
@@ -74,7 +73,7 @@ export function outputResult(
 
   if (options.outputDir === undefined) {
     if (options.result) {
-      console.log(`#--- ${codeOutput} ---\n${code}\n#---`);
+      console.log(`//--- ${codeOutput} ---\n${code}\n//---`);
     }
   } else {
     if (fs.existsSync(options.outputDir)) {
@@ -85,21 +84,9 @@ export function outputResult(
         );
       }
     }
-    const fullCodeOutPath = `${options.outputDir}/${codeOutput}`;
+    const fullCodeOutPath = path.join(options.outputDir, codeOutput);
     fs.outputFileSync(fullCodeOutPath, codeWithABI);
     formatOutput(fullCodeOutPath);
-
-    if (options.compileCairo) {
-      const { success, resultPath, abiPath } = compileCairo(fullCodeOutPath);
-      if (!success) {
-        if (resultPath) {
-          fs.unlinkSync(resultPath);
-        }
-        if (abiPath) {
-          fs.unlinkSync(abiPath);
-        }
-      }
-    }
   }
 }
 

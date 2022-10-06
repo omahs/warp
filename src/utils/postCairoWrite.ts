@@ -17,12 +17,13 @@ export const HASH_OPTION = 'sha256';
   @param pathPrefix: The prefix proceeding the the path to the file
   @param contractHashToClassHash: A mapping that holds the contract path with out the pathPrefix and maps
   it to the contracts class hash.
+  @returns cairoFilePath: The path to the cairo File that was processed.
  */
 export function postProcessCairoFile(
   cairoFilePath: string,
   pathPrefix: string,
   contractHashToClassHash: Map<string, string>,
-): void {
+): string {
   const fullPath = path.join(pathPrefix, cairoFilePath);
   // Creates a dependency graph for the file
   const dependencyGraph = getDependencyGraph(fullPath, pathPrefix);
@@ -30,7 +31,7 @@ export function postProcessCairoFile(
   const filesToHash = dependencyGraph.get(fullPath);
   // If the file has nothing to hash then we can leave.
   if (filesToHash === undefined || filesToHash.length === 0) {
-    return;
+    return cairoFilePath;
   }
   // If the file does have dependencies then we need to make sure that the dependencies of
   // those files have been calculated and inserted.
@@ -38,7 +39,7 @@ export function postProcessCairoFile(
     hashDependacies(file, pathPrefix, dependencyGraph, contractHashToClassHash);
   });
   setDeclaredAddresses(fullPath, contractHashToClassHash);
-  return;
+  return cairoFilePath;
 }
 
 function hashDependacies(
@@ -124,7 +125,7 @@ export function replaceHashPlaceHolder(
 
     // Flag that there are changes that need to be rewritten
     update = true;
-    const newLine = [constant, fullName, equal, declaredAddress].join(' ');
+    const newLine = [constant, fullName, equal, declaredAddress].join(' ') + ';';
     return newLine;
   });
 
@@ -154,7 +155,7 @@ export function setDeclaredAddresses(fileLoc: string, declarationAddresses: Map<
 
     // Flag that there are changes that need to be rewritten
     update = true;
-    const newLine = [constant, fullName, equal, declaredAddress].join(' ');
+    const newLine = [constant, fullName, equal, declaredAddress].join(' ') + ';';
     return newLine;
   });
 
@@ -209,14 +210,13 @@ function extractContractsToDeclared(fileLoc: string, pathPrefix: string): string
   const contractsToDeclare = cairoCode
     .map((line) => {
       const [comment, declare, location, ...other] = line.split(new RegExp('[ ]+'));
-      if (comment !== '#' || declare !== '@declare') return '';
+      if (comment !== '//' || declare !== '@declare') return '';
 
       assert(other.length === 0, `Parsing failure, unexpected extra tokens: ${other.join(' ')}`);
 
       return path.join(pathPrefix, location);
     })
     .filter((val) => val !== '');
-
   return contractsToDeclare;
 }
 
