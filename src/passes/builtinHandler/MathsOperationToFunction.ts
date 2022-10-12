@@ -103,7 +103,7 @@ export class MathsOperationToFunction extends ASTMapper {
       node.vExpression instanceof Identifier &&
       node.vExpression.vReferencedDeclaration === undefined
     ) {
-      if ('addmod' === node.vExpression.name) {
+      if (['mulmod', 'addmod'].includes(node.vExpression.name)) {
         const name = `warp_${node.vExpression.name}`;
         const cairoStub = createCairoFunctionStub(
           name,
@@ -119,34 +119,6 @@ export class MathsOperationToFunction extends ASTMapper {
         const replacement = createCallToFunction(cairoStub, node.vArguments, ast);
         ast.replaceNode(node, replacement);
         ast.registerImport(replacement, `warplib.maths.${node.vExpression.name}`, name);
-      }
-      if ('mulmod' === node.vExpression.name) {
-        const replacementCall = createCallToFunction(
-          createCairoFunctionStub(
-            'uint256_mul_div_mod',
-            [
-              ['a', createUint256TypeName(ast)],
-              ['b', createUint256TypeName(ast)],
-              ['div', createUint256TypeName(ast)],
-            ],
-            [
-              ['quotient_low', createUint256TypeName(ast)],
-              ['quotient_high', createUint256TypeName(ast)],
-              ['remainder', createUint256TypeName(ast)],
-            ],
-            ['range_check_ptr'],
-            ast,
-            node,
-          ),
-          node.vArguments,
-          ast,
-        );
-        ast.replaceNode(node, replacementCall);
-        ast.registerImport(
-          replacementCall,
-          'starkware.cairo.common.uint256',
-          'uint256_mul_div_mod',
-        );
       }
     }
   }
