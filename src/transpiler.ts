@@ -61,6 +61,7 @@ import {
   VariableDeclarationInitialiser,
   WarnSupportedFeatures,
 } from './passes';
+import { MakeUnchecked } from './passes/makeUnchecked';
 import { CairoToSolASTWriterMapping } from './solWriter';
 import { DefaultASTPrinter } from './utils/astPrinter';
 import { createPassMap, parsePassOrder } from './utils/cli';
@@ -85,7 +86,7 @@ export function transpile(ast: AST, options: TranspilationOptions & PrintOptions
 }
 
 export function transform(ast: AST, options: TranspilationOptions & PrintOptions): CairoSource[] {
-  const cairoAST = applyPasses(ast, options);
+  const cairoAST = MakeUnchecked.map(ast);
   const writer = new ASTWriter(
     CairoToSolASTWriterMapping(!!options.stubs),
     new PrettyFormatter(4, 0),

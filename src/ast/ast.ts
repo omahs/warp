@@ -313,6 +313,12 @@ export class AST {
 
   // Reference notes/astnodetypes.ts for exact restrictions on what can safely be replaced with what
   replaceNode(
+    oldNode: StatementWithChildren<Statement>,
+    newNode: StatementWithChildren<Statement>,
+    parent?: ASTNode,
+    copyImports?: boolean,
+  ): number;
+  replaceNode(
     oldNode: Expression,
     newNode: Expression,
     parent?: ASTNode,
