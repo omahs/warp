@@ -8,10 +8,10 @@ export class MakeUnchecked extends ASTMapper {
   }
 
   visitFunctionDefinition(node: FunctionDefinition, ast: AST): void {
-    //@ts-ignore
     const uncheckedBody = new UncheckedBlock(
       ast.reserveId(),
       '',
+      //@ts-ignore
       node.vBody?.vStatements,
       undefined,
       node.raw,
