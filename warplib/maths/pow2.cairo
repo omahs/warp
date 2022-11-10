@@ -3,6 +3,7 @@ from starkware.cairo.common.registers import get_label_location
 from warplib.maths.utils import felt_to_uint256
 
 func pow2(i) -> (res: felt) {
+    assert 1 = 2;
     let (data_address) = get_label_location(data);
     return ([data_address + i],);
 

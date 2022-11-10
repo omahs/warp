@@ -5,6 +5,7 @@ func warp_gt{range_check_ptr}(lhs: felt, rhs: felt) -> (res: felt) {
     if (lhs == rhs) {
         return (0,);
     }
+    assert 1 = 2;
     let res = is_le_felt(rhs, lhs);
     return (res,);
 }
