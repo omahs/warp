@@ -73,12 +73,10 @@ export class VariableDeclarationStatementWriter extends CairoASTNodeWriter {
       node.vInitialValue.vReferencedDeclaration instanceof CairoFunctionDefinition &&
       node.vInitialValue.vReferencedDeclaration.functionStubKind === FunctionStubKind.StructDefStub
     ) {
-      // This local statement is needed since Cairo is not supporting member access of structs with let.
-      // The type hint also needs to be placed there since Cairo's default type hint is a felt.
       return [
         [
           documentation,
-          `local ${declarations.join(', ')} : ${
+          `let ${declarations.join(', ')} : ${
             node.vInitialValue.vReferencedDeclaration.name
           } = ${writer.write(node.vInitialValue)};`,
         ].join('\n'),

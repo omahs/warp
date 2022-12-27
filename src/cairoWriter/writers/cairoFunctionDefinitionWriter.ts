@@ -80,10 +80,7 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const [keccakPtrInit, [withKeccak, end]] =
       node.implicits.has('keccak_ptr') && isExternallyVisible(node)
         ? [
-            [
-              'let (local keccak_ptr_start : felt*) = alloc();',
-              'let keccak_ptr = keccak_ptr_start;',
-            ],
+            ['let (keccak_ptr_start : felt*) = alloc();', 'let keccak_ptr = keccak_ptr_start;'],
             ['with keccak_ptr{', '}'],
           ]
         : [[], ['', '']];
@@ -108,8 +105,8 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
       'alloc_locals;',
       this.getConstructorStorageAllocation(node),
       ...keccakPtrInit,
-      'let (local warp_memory : DictAccess*) = default_dict_new(0);',
-      'local warp_memory_start: DictAccess* = warp_memory;',
+      'let (warp_memory : DictAccess*) = default_dict_new(0);',
+      'let warp_memory_start: DictAccess* = warp_memory;',
       'dict_write{dict_ptr=warp_memory}(0,1);',
       `with warp_memory${keccakPtr}{`,
       writer.write(node.vBody),
