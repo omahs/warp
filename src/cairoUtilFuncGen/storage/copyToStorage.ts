@@ -396,7 +396,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         ? [
             'let (from_low) = WARP_STORAGE.read(from_loc);',
             'let (from_high) = WARP_STORAGE.read(from_loc + 1);',
-            'tempvar from_elem = Uint256(from_low, from_high);',
+            'let from_elem = Uint256(from_low, from_high);',
           ].join('\n')
         : 'let (from_elem) = WARP_STORAGE.read(from_loc);';
 
@@ -448,7 +448,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         ? [
             'let (from_low) = WARP_STORAGE.read(from_loc);',
             'let (from_high) = WARP_STORAGE.read(from_loc + 1);',
-            'tempvar from_elem = Uint256(from_low, from_high);',
+            'let from_elem = Uint256(from_low, from_high);',
           ].join('\n')
         : 'let (from_elem) = WARP_STORAGE.read(from_loc);';
 
