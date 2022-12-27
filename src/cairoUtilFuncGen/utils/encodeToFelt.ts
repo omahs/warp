@@ -168,7 +168,6 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     const funcName = `encode_as_felt${this.generatedFunctions.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(${cairoParams}) -> (calldata_array : ${resultStruct}){`,
-      `   alloc_locals;`,
       `   let total_size : felt = 0;`,
       `   let (decode_array : felt*) = alloc();`,
       ...encodeCode,
@@ -256,7 +255,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       `   from_size: felt,`,
       `   from_array: ${cairoElementType.toString()}*`,
       `) -> (total_copied : felt){`,
-      `   alloc_locals;`,
+
       `   if (from_index == from_size){`,
       `      return (total_copied=to_index,);`,
       `   }`,
@@ -288,7 +287,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
       `func ${funcName}${IMPLICITS}(`,
       `   to_index : felt, to_array : felt*, from_struct : ${cairoType.toString()}`,
       `) -> (total_copied : felt){`,
-      `    alloc_locals;`,
+
       ...encodeCode,
       `    return (to_index,);`,
       `}`,
@@ -311,7 +310,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     const funcName = `encode_static_size${type.size}_array_${this.auxiliarGeneratedFunctions.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(to_index : felt, to_array : felt*, from_static_array : ${cairoType.toString()}) -> (total_copied : felt){`,
-      `    alloc_locals;`,
+
       ...encodeCode,
       `    return (to_index,);`,
       `}`,

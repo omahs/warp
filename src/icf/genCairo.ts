@@ -218,7 +218,6 @@ export function getInteractiveFuncs(
         ') -> (',
         ...funcReturnArgs,
         ') {',
-        `${INDENT}alloc_locals;`,
         `${INDENT}// check external input`,
         ...externalInputCheckStatements,
         `${INDENT}// cast inputs`,

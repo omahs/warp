@@ -150,7 +150,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(arg : ${cairoType.toString()}) -> (){`,
-        `alloc_locals;`,
         ...structDef.vMembers.map((decl) => {
           const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
           this.checkForImport(memberType);
@@ -182,7 +181,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(arg : ${cairoType.toString()}) -> (){`,
-        `alloc_locals;`,
         ...mapRange(length, (index) => {
           const indexCheck = this.getOrCreate(elementType);
           return [`${indexCheck}(arg[${index}]);`];
@@ -248,7 +246,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(len: felt, ptr : ${ptrType.toString()}) -> (){`,
-        `    alloc_locals;`,
         `    if (len == 0){`,
         `        return ();`,
         `    }`,

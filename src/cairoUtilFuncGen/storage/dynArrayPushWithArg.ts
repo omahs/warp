@@ -147,7 +147,6 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(loc: felt, value: ${inputType}) -> (){`,
-        `    alloc_locals;`,
         `    let (len) = ${lengthName}.read(loc);`,
         `    let (newLen, carry) = uint256_add(len, Uint256(1,0));`,
         `    assert carry = 0;`,

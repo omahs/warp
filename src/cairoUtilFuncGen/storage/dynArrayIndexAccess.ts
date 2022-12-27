@@ -66,7 +66,6 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(ref: felt, index: Uint256) -> (res: felt){`,
-        `    alloc_locals;`,
         `    let (length) = ${lengthName}.read(ref);`,
         `    let (inRange) = uint256_lt(index, length);`,
         `    assert inRange = 1;`,

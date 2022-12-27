@@ -87,7 +87,6 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (res:felt){`,
-        `    alloc_locals;`,
         `    let (start) = wm_alloc(${uint256(structType.width)});`,
         mangledStructMembers
           .flatMap(([name, type]) => type.serialiseMembers(name))

@@ -72,7 +72,6 @@ export class AbiEncodeWithSelector extends AbiBase {
     const funcName = `${this.functionName}${this.generatedFunctions.size}`;
     const code = [
       `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
-      `  alloc_locals;`,
       `  let bytes_index : felt = 0;`,
       `  let bytes_offset : felt = ${initialOffset};`,
       `  let (bytes_array : felt*) = alloc();`,

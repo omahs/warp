@@ -88,7 +88,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(loc : felt) -> (mem_loc: felt){`,
-        `    alloc_locals;`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
         ...generateCopyInstructions(type, this.ast).flatMap(
           ({ storageOffset, copyType }, index) => [
@@ -128,7 +127,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt){`,
-        `    alloc_locals;`,
+
         `    let length = ${uint256(memoryType.width)};`,
         `    let (mem_start) = wm_alloc(length);`,
         ...generateCopyInstructions(type, this.ast).flatMap(
@@ -179,7 +178,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}_elem${implicits}(mem_start: felt, loc : felt, length: Uint256) -> (){`,
-        `   alloc_locals;`,
+
         `   if (length.low == 0){`,
         `       if (length.high == 0){`,
         `           return ();`,
@@ -194,7 +193,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `}`,
 
         `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt){`,
-        `    alloc_locals;`,
+
         `    let length = ${uint256(length)};`,
         `    let (mem_start) = wm_alloc(length);`,
         `    ${funcName}_elem(mem_start, loc, length);`,
@@ -244,7 +243,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}_elem${implicits}(storage_name: felt, mem_start: felt, length: Uint256) -> (){`,
-        `    alloc_locals;`,
+
         `    if (length.low == 0 and length.high == 0){`,
         `        return ();`,
         `    }`,
@@ -256,7 +255,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `}`,
 
         `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt){`,
-        `    alloc_locals;`,
+
         `    let (length: Uint256) = ${lengthMapping}.read(loc);`,
         `    let (mem_start) = wm_new(length, ${uint256(memoryElementType.width)});`,
         `    ${funcName}_elem(loc, mem_start, length);`,

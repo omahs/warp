@@ -97,7 +97,6 @@ export class MemoryReadGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}{range_check_ptr, warp_memory : DictAccess*}(loc: felt) ->(val: ${resultCairoType}){`,
-        `    alloc_locals;`,
         ...reads.map((s) => `    ${s}`),
         `    return (${pack},);`,
         '}',

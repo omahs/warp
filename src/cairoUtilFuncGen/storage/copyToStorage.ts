@@ -130,7 +130,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
-        `    alloc_locals;`,
         ...members.map((memberType): string => {
           const width = CairoType.fromSol(
             memberType,
@@ -260,7 +259,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}_elem${implicits}(to_loc: felt, from_loc: felt, length: Uint256) -> (){`,
-        `    alloc_locals;`,
         `    if (length.low == 0 and length.high == 0){`,
         `        return ();`,
         `    }`,
@@ -279,7 +277,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `    }`,
         `}`,
         `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
-        `    alloc_locals;`,
         `    let (from_length) = ${fromLengthMapping}.read(from_loc);`,
         `    let (to_length) = ${toLengthMapping}.read(to_loc);`,
         `    ${toLengthMapping}.write(to_loc, from_length);`,
@@ -332,7 +329,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}_elem${implicits}(to_loc: felt, from_elem_loc: felt, length: Uint256, index: Uint256) -> (){`,
-        `    alloc_locals;`,
         `    if (length.low == index.low){`,
         `        if (length.high == index.high){`,
         `            return ();`,
@@ -353,7 +349,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `    }`,
         `}`,
         `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
-        `    alloc_locals;`,
         `    let from_length  = ${uint256(narrowBigIntSafe(fromType.size))};`,
         `    let (to_length) = ${toLengthMapping}.read(to_loc);`,
         `    ${toLengthMapping}.write(to_loc, from_length);`,
@@ -422,7 +417,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
-        `   alloc_locals;`,
         `   ${readFromCode}`,
         `   ${scalingCode}`,
         `   ${copyToCode}`,
@@ -469,7 +463,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
-        `   alloc_locals;`,
         `   ${readFromCode}`,
         `   ${scalingCode}`,
         `   ${copyToCode}`,
@@ -486,7 +479,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
-        `    alloc_locals;`,
         ...mapRange(width, copyAtOffset),
         `    return (to_loc,);`,
         `}`,

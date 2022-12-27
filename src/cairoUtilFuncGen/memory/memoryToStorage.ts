@@ -107,7 +107,6 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(loc : felt, mem_loc: felt) -> (loc: felt){`,
-        `    alloc_locals;`,
         ...generateCopyInstructions(type, this.ast).flatMap(
           ({ storageOffset, copyType }, index) => {
             const elemLoc = `elem_mem_loc_${index}`;
@@ -204,7 +203,6 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}_elem${implicits}(storage_loc: felt, mem_loc : felt, length: felt) -> (){`,
-        `    alloc_locals;`,
         `    if (length == 0){`,
         `        return ();`,
         `    }`,
@@ -217,7 +215,6 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         `}`,
 
         `func ${funcName}${implicits}(loc : felt, mem_loc : felt) -> (loc : felt){`,
-        `    alloc_locals;`,
         `    ${funcName}_elem(loc, mem_loc, ${length});`,
         `    return (loc,);`,
         `}`,
@@ -287,7 +284,6 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}_elem${implicits}(storage_name: felt, mem_loc : felt, length: Uint256) -> (){`,
-        `    alloc_locals;`,
         `    if (length.low == 0 and length.high == 0){`,
         `        return ();`,
         `    }`,
@@ -307,7 +303,6 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         `}`,
 
         `func ${funcName}${implicits}(loc : felt, mem_loc : felt) -> (loc : felt){`,
-        `    alloc_locals;`,
         `    let (length) = ${lengthMapping}.read(loc);`,
         `    let (mem_length) = wm_dyn_array_length(mem_loc);`,
         `    ${lengthMapping}.write(loc, mem_length);`,

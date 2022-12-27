@@ -100,7 +100,6 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
         name: funcName,
         code: [
           `func ${funcName}${implicits}() -> (res_loc : felt){`,
-          `   alloc_locals;`,
           `   let (res_loc) = wm_new(${uint256(0)}, ${uint256(1)});`,
           `   return (res_loc,);`,
           `}`,
@@ -114,7 +113,6 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     });
     const code = [
       `func ${funcName}${implicits}(${cairoArgs}) -> (res_loc : felt){`,
-      `    alloc_locals;`,
       `    // Get all sizes`,
       ...argTypes.map((t, n) => this.getSize(t, n)),
       `    let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')};`,

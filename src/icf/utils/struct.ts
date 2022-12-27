@@ -103,12 +103,10 @@ export function uint256TransformStructs(
     transformedStructsFuncs.push(
       [
         `func ${item.name}_cast{syscall_ptr: felt*, range_check_ptr: felt}(frm : ${item.name}_uint256) -> (to : ${item.name}) {`,
-        `${INDENT}alloc_locals;`,
         ...castFunctionBody,
         `${INDENT}return (${item.name}(${item.members.map((x) => `${x.name}`).join(',')}),);`,
         '}',
         `func ${item.name}_cast_reverse{syscall_ptr: felt*, range_check_ptr: felt}(frm : ${item.name}) -> (to : ${item.name}_uint256) {`,
-        `${INDENT}alloc_locals;`,
         ...castReverseFunctionBody,
         `${INDENT}return (${item.name}_uint256(${item.members.map((x) => x.name).join(',')}),);`,
         '}',

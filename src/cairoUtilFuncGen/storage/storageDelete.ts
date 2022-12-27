@@ -146,7 +146,6 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
     const deleteFunc = [
       `func ${funcName}_elem${implicits}(loc : felt, index : Uint256, length : Uint256){`,
-      `     alloc_locals;`,
       `     let (stop) = uint256_eq(index, length);`,
       `     if (stop == 1){`,
       `        return ();`,
@@ -157,7 +156,6 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       `     return ${funcName}_elem(loc, next_index, length);`,
       `}`,
       `func ${funcName}${implicits}(loc : felt){`,
-      `   alloc_locals;`,
       `   let (length) = ${lengthName}.read(loc);`,
       `   ${lengthName}.write(loc, ${uint256(0)});`,
       `   return ${funcName}_elem(loc, ${uint256(0)}, length);`,
@@ -176,7 +174,6 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
     const code = [
-      `   alloc_locals;`,
       ...this.generateStructDeletionCode(
         mapRange(narrowBigIntSafe(type.size), () => type.elementT),
       ),
@@ -211,7 +208,6 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const nextLoc = add('loc', elementTWidht);
     const deleteFunc = [
       `func ${funcName}_elem${implicits}(loc : felt, index : felt){`,
-      `     alloc_locals;`,
       `     if (index == ${length}){`,
       `        return ();`,
       `     }`,
@@ -220,7 +216,6 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       `     return ${funcName}_elem(${nextLoc}, next_index);`,
       `}`,
       `func ${funcName}${implicits}(loc : felt){`,
-      `   alloc_locals;`,
       `   return ${funcName}_elem(loc, 0);`,
       `}`,
     ].join('\n');
@@ -237,7 +232,6 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     // struct names are unique
     const deleteFunc = [
       `func ${funcName}${implicits}(loc : felt){`,
-      `   alloc_locals;`,
       ...this.generateStructDeletionCode(
         structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.compilerVersion)),
       ),

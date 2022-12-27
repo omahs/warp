@@ -105,7 +105,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}){`,
-        `    alloc_locals;`,
         ...structDef.vMembers.map((decl, index) => {
           const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
           if (isReferenceType(memberType)) {
@@ -165,7 +164,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}){`,
-        `    alloc_locals;`,
         ...mapRange(length, (index) => {
           if (isReferenceType(elementT)) {
             this.requireImport('warplib.memory', 'wm_read_id');
@@ -230,7 +228,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(mem_loc: felt) -> (retData: ${outputType.toString()}){`,
-        `    alloc_locals;`,
         `    let (len_256) = wm_read_256(mem_loc);`,
         `    let (ptr : ${outputType.vPtr.toString()}) = alloc();`,
         `    let (len_felt) = narrow_safe(len_256);`,
@@ -290,7 +287,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}${implicits}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (){`,
-        `    alloc_locals;`,
         `    if (len == 0){`,
         `         return ();`,
         `    }`,

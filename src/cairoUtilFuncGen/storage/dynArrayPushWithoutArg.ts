@@ -47,7 +47,6 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (newElemLoc: felt){`,
-        `    alloc_locals;`,
         `    let (len) = ${lengthName}.read(loc);`,
         `    let (newLen, carry) = uint256_add(len, Uint256(1,0));`,
         `    assert carry = 0;`,

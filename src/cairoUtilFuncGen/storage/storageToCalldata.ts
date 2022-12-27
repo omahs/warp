@@ -96,7 +96,6 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     const funcName = `ws_struct_${cairoStruct.toString()}_to_calldata`;
     const code = [
       `func ${funcName}${implicits}(loc : felt) -> (${structName} : ${cairoStruct.toString()}){`,
-      `   alloc_locals;`,
       ...copyInstructions,
       `   return (${cairoStruct.toString()}(${members.join(', ')}),);`,
       `}`,
@@ -120,7 +119,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     const funcName = `ws_static_array_to_calldata${this.generatedFunctions.size}`;
     const code = [
       `func ${funcName}${implicits}(loc : felt) -> (static_array : ${cairoType.toString()}){`,
-      `    alloc_locals;`,
+
       ...copyInstructions,
       `    return ((${members.join(', ')}),);`,
       `}`,
@@ -159,7 +158,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       `   index : felt,`,
       `   len : felt,`,
       `   ptr : ${ptrType}) -> (ptr : ${ptrType}){`,
-      `   alloc_locals;`,
+
       `   if (len == index){`,
       `       return (ptr,);`,
       `   }`,
@@ -171,7 +170,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       `}`,
 
       `func ${funcName}${implicits}(loc : felt) -> (dyn_array_struct : ${structDef.name}){`,
-      `   alloc_locals;`,
+
       `   let (len_uint256) = ${arrayLen}.read(loc);`,
       `   let len = len_uint256.low + len_uint256.high*128;`,
       `   let (ptr : ${ptrType}) = alloc();`,

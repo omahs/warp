@@ -16,7 +16,6 @@ export function externalInputCheckStatement(
       type,
       [
         `func ${funcName}{range_check_ptr : felt}(len: felt, ptr: ${type}) -> (){`,
-        `${INDENT}alloc_locals;`,
         `${INDENT}if (len == 0){`,
         `${INDENT}    return ();`,
         `${INDENT}}`,
@@ -41,7 +40,6 @@ export function externalInputCheckStatement(
       type,
       [
         `func ${funcName}{range_check_ptr : felt}(arg: ${type}) -> (){`,
-        `${INDENT}alloc_locals;`,
         ...(struct?.members.map((member) => {
           return externalInputCheckStatement(
             `arg.${member.name}`,

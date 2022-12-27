@@ -122,7 +122,6 @@ export class EventFunction extends StringIndexedFuncGen {
 
     const code = [
       `func ${this.funcName}${key}${IMPLICITS}(${cairoParams}){`,
-      `   alloc_locals;`,
       `   // keys arrays`,
       `   let keys_len: felt = 0;`,
       `   let (keys: felt*) = alloc();`,

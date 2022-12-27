@@ -87,7 +87,6 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
 
     if (!isExternallyVisible(node) || !node.implicits.has('warp_memory')) {
       return [
-        'alloc_locals;',
         this.getConstructorStorageAllocation(node),
         ...keccakPtrInit,
         withKeccak,
@@ -102,7 +101,6 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const keccakPtr = withKeccak !== '' ? ', keccak_ptr' : '';
 
     return [
-      'alloc_locals;',
       this.getConstructorStorageAllocation(node),
       ...keccakPtrInit,
       'let (warp_memory : DictAccess*) = default_dict_new(0);',
