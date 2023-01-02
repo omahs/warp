@@ -98,7 +98,7 @@ export function getInteractiveFuncs(
 
   abi.forEach((item: AbiItemType) => {
     if (item.type === 'function' && item.name !== '__default__') {
-      const decorator: string = item.stateMutability === 'view' ? '@view' : '@external';
+      const decorator: string = item.stateMutability === 'view' ? '#[view]' : '#[external]';
 
       const callToFunc = (isDelegate: boolean) =>
         `${INDENT}let (${item.outputs.reduce(

@@ -61,8 +61,8 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
       if (
         [FunctionStateMutability.Pure, FunctionStateMutability.View].includes(node.stateMutability)
       )
-        decorators.push('@view');
-      else decorators.push('@external');
+        decorators.push('#[view]');
+      else decorators.push('#[external]');
     }
 
     return decorators;
