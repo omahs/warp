@@ -14,8 +14,7 @@ import { delegateBasedOnType, mul } from '../base';
 import { MemoryReadGen } from '../memory/memoryRead';
 import { AbiBase } from './base';
 
-const IMPLICITS =
-  '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+const IMPLICITS = 'implicits(bitwise_ptr : BitwiseBuiltin*, RangeCheck, warp_memory : DictAccess*)';
 
 /**
  * Given any data type produces the same output of solidty abi.encodePacked
@@ -50,7 +49,7 @@ export class AbiEncodePacked extends AbiBase {
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
+      `fn ${funcName}(${cairoParams}) -> (result_ptr : felt) ${IMPLICITS}{`,
       `  let bytes_index : felt = 0;`,
       `  let (bytes_array : felt*) = alloc();`,
       ...encodings,
@@ -158,13 +157,13 @@ export class AbiEncodePacked extends AbiBase {
 
     const name = `${this.functionName}_inline_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_array : felt*,`,
       `  mem_index : felt,`,
       `  mem_length : felt,`,
       `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt){`,
+      `) -> (final_bytes_index : felt) ${IMPLICITS}{`,
       `  if (mem_index == mem_length){`,
       `     return (final_bytes_index=bytes_index);`,
       `  }`,

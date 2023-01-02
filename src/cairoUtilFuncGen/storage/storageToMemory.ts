@@ -31,6 +31,9 @@ import { DynArrayGen } from './dynArray';
   In storage nested structures are stored in place, whereas in memory 'pointers' are used
 */
 
+const IMPLICITS =
+  'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck, warp_memory : DictAccess*)';
+
 export class StorageToMemoryGen extends StringIndexedFuncGen {
   constructor(private dynArrayGen: DynArrayGen, ast: AST, sourceUnit: SourceUnit) {
     super(ast, sourceUnit);
@@ -78,8 +81,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
 
     const funcName = `ws_to_memory${this.generatedFunctions.size}`;
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
     // Set an empty entry so recursive function generation doesn't clash
     this.generatedFunctions.set(key, { name: funcName, code: '' });
@@ -87,7 +88,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(loc : felt) -> (mem_loc: felt){`,
+        `fn ${funcName}(loc : felt) -> (mem_loc: felt) ${IMPLICITS}{`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
         ...generateCopyInstructions(type, this.ast).flatMap(
           ({ storageOffset, copyType }, index) => [
@@ -117,8 +118,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const memoryType = CairoType.fromSol(type, this.ast, TypeConversionContext.MemoryAllocation);
 
     const funcName = `ws_to_memory${this.generatedFunctions.size}`;
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
     // Set an empty entry so recursive function generation doesn't clash
     this.generatedFunctions.set(key, { name: funcName, code: '' });
@@ -126,7 +125,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt){`,
+        `fn ${funcName}(loc : felt) -> (mem_loc : felt) ${IMPLICITS}{`,
 
         `    let length = ${uint256(memoryType.width)};`,
         `    let (mem_start) = wm_alloc(length);`,
@@ -154,8 +153,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
       type.size,
       `Failed to narrow size of ${printTypeNode(type)} in memory->storage copy generation`,
     );
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
     // Set an empty entry so recursive function generation doesn't clash
     this.generatedFunctions.set(key, { name: funcName, code: '' });
@@ -177,7 +174,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(mem_start: felt, loc : felt, length: Uint256) -> (){`,
+        `fn ${funcName}_elem(mem_start: felt, loc : felt, length: Uint256) -> () ${IMPLICITS}{`,
 
         `   if (length.low == 0){`,
         `       if (length.high == 0){`,
@@ -192,7 +189,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         )}, index);`,
         `}`,
 
-        `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt){`,
+        `fn ${funcName}(loc : felt) -> (mem_loc : felt) ${IMPLICITS}{`,
 
         `    let length = ${uint256(length)};`,
         `    let (mem_start) = wm_alloc(length);`,
@@ -225,8 +222,6 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     const [elemMapping, lengthMapping] = this.dynArrayGen.gen(
       CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
     );
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
     // This is the code to copy a single element
     // Complex types require calls to another function generated here
@@ -242,7 +237,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(storage_name: felt, mem_start: felt, length: Uint256) -> (){`,
+        `fn ${funcName}_elem(storage_name: felt, mem_start: felt, length: Uint256) -> () ${IMPLICITS}{`,
 
         `    if (length.low == 0 and length.high == 0){`,
         `        return ();`,
@@ -254,7 +249,7 @@ export class StorageToMemoryGen extends StringIndexedFuncGen {
         `    return ${funcName}_elem(storage_name, mem_start, index);`,
         `}`,
 
-        `func ${funcName}${implicits}(loc : felt) -> (mem_loc : felt){`,
+        `fn ${funcName}(loc : felt) -> (mem_loc : felt) ${IMPLICITS}{`,
 
         `    let (length: Uint256) = ${lengthMapping}.read(loc);`,
         `    let (mem_start) = wm_new(length, ${uint256(memoryElementType.width)});`,

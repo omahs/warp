@@ -54,12 +54,13 @@ export class StorageReadGen extends StringIndexedFuncGen {
     }
 
     const funcName = `WS${this.generatedFunctions.size}_READ_${typeToRead.typeName}`;
+    const implicits = 'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck)';
     const resultCairoType = typeToRead.toString();
     const [reads, pack] = serialiseReads(typeToRead, readFelt, readId);
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) ->(val: ${resultCairoType}){`,
+        `fn ${funcName}(loc: felt) ->(val: ${resultCairoType}) ${implicits}{`,
         ...reads.map((s) => `    ${s}`),
         `    return (${pack},);`,
         '}',

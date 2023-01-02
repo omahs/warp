@@ -62,10 +62,11 @@ export class DynArrayIndexAccessGen extends StringIndexedFuncGen {
 
     const [arrayName, lengthName] = this.dynArrayGen.gen(valueCairoType);
     const funcName = `${arrayName}_IDX`;
+    const implicits = 'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck)';
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(ref: felt, index: Uint256) -> (res: felt){`,
+        `fn ${funcName}(ref: felt, index: Uint256) -> (res: felt) ${implicits}{`,
         `    let (length) = ${lengthName}.read(ref);`,
         `    let (inRange) = uint256_lt(index, length);`,
         `    assert inRange = 1;`,

@@ -112,10 +112,11 @@ export class MemoryArrayLiteralGen extends StringIndexedFuncGen {
 
     // If it's dynamic we need to include the length at the start
     const alloc_len = dynamic ? size * elementCairoType.width + 2 : size * elementCairoType.width;
+    const implicits = 'implicits(RangeCheck, warp_memory: DictAccess*)';
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (loc: felt){`,
+        `fn ${funcName}(${argString}) -> (loc: felt) ${implicits}{`,
         `    let (start) = wm_alloc(${uint256(alloc_len)});`,
         [
           ...(dynamic ? [`wm_write_256{warp_memory=warp_memory}(start, ${uint256(size)});`] : []),

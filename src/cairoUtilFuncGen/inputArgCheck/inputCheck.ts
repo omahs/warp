@@ -36,6 +36,8 @@ import {
 } from '../../utils/nodeTypeProcessing';
 import { cloneASTNode } from '../../utils/cloning';
 
+const IMPLICITS = 'implicits(RangeCheck)';
+
 export class InputCheckGen extends StringIndexedFuncGen {
   gen(
     nodeInput: VariableDeclaration | Expression,
@@ -140,8 +142,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
   }
 
   private createStructInputCheck(key: string, funcName: string, type: UserDefinedType): string {
-    const implicits = '{range_check_ptr : felt}';
-
     const structDef = type.definition;
     assert(structDef instanceof StructDefinition);
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
@@ -149,7 +149,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(arg : ${cairoType.toString()}) -> (){`,
+        `fn ${funcName}(arg : ${cairoType.toString()}) -> () ${IMPLICITS}{`,
         ...structDef.vMembers.map((decl) => {
           const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
           this.checkForImport(memberType);
@@ -168,8 +168,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
   }
 
   private createStaticArrayInputCheck(key: string, funcName: string, type: ArrayType): string {
-    const implicits = '{range_check_ptr : felt}';
-
     assert(type.size !== undefined);
     const length = narrowBigIntSafe(type.size);
     assert(length !== undefined);
@@ -180,7 +178,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(arg : ${cairoType.toString()}) -> (){`,
+        `fn ${funcName}(arg : ${cairoType.toString()}) -> () ${IMPLICITS}{`,
         ...mapRange(length, (index) => {
           const indexCheck = this.getOrCreate(elementType);
           return [`${indexCheck}(arg[${index}]);`];
@@ -200,7 +198,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
 
   private createEnumInputCheck(key: string, type: UserDefinedType, takesUint = false): string {
     const funcName = `extern_input_check${this.generatedFunctions.size}`;
-    const implicits = '{range_check_ptr : felt}';
 
     const enumDef = type.definition;
     assert(enumDef instanceof EnumDefinition);
@@ -208,7 +205,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(arg : ${takesUint ? 'Uint256' : 'felt'}) -> (){`,
+        `fn ${funcName}(arg : ${takesUint ? 'Uint256' : 'felt'}) -> () ${IMPLICITS}{`,
         takesUint
           ? [
               '    let (arg_0) = narrow_safe(arg);',
@@ -233,8 +230,6 @@ export class InputCheckGen extends StringIndexedFuncGen {
     funcName: string,
     type: ArrayType | BytesType | StringType,
   ): string {
-    const implicits = '{range_check_ptr : felt}';
-
     const cairoType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     assert(cairoType instanceof CairoDynArray);
     const ptrType = cairoType.vPtr;
@@ -245,7 +240,7 @@ export class InputCheckGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(len: felt, ptr : ${ptrType.toString()}) -> (){`,
+        `fn ${funcName}(len: felt, ptr : ${ptrType.toString()}) -> () ${IMPLICITS}{`,
         `    if (len == 0){`,
         `        return ();`,
         `    }`,

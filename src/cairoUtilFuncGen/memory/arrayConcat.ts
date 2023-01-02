@@ -81,8 +81,8 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
     const implicits = argTypes.some(
       (type) => type instanceof IntType || type instanceof FixedBytesType,
     )
-      ? '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}'
-      : '{range_check_ptr : felt, warp_memory : DictAccess*}';
+      ? 'implicits(bitwise_ptr : BitwiseBuiltin*, RangeCheck, warp_memory : DictAccess*)'
+      : 'implicits(RangeCheck, warp_memory : DictAccess*)';
 
     const cairoFunc = this.generateBytesConcat(argTypes, implicits);
     this.generatedFunctions.set(key, cairoFunc);
@@ -99,7 +99,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       return {
         name: funcName,
         code: [
-          `func ${funcName}${implicits}() -> (res_loc : felt){`,
+          `fn ${funcName}() -> (res_loc : felt) ${implicits}{`,
           `   let (res_loc) = wm_new(${uint256(0)}, ${uint256(1)});`,
           `   return (res_loc,);`,
           `}`,
@@ -112,7 +112,7 @@ export class MemoryArrayConcat extends StringIndexedFuncGen {
       return `arg_${index} : ${cairoType}`;
     });
     const code = [
-      `func ${funcName}${implicits}(${cairoArgs}) -> (res_loc : felt){`,
+      `fn ${funcName}(${cairoArgs}) -> (res_loc : felt) ${implicits}{`,
       `    // Get all sizes`,
       ...argTypes.map((t, n) => this.getSize(t, n)),
       `    let total_length = ${mapRange(argAmount, (n) => `size_${n}`).join('+')};`,

@@ -39,6 +39,9 @@ import { StorageDeleteGen } from './storageDelete';
   copied by caring only about their width
 */
 
+const IMPLICITS =
+  'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck, bitwise_ptr : BitwiseBuiltin*)';
+
 export class StorageToStorageGen extends StringIndexedFuncGen {
   constructor(
     private dynArrayGen: DynArrayGen,
@@ -129,7 +132,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
+        `fn ${funcName}(to_loc: felt, from_loc: felt) -> (retLoc: felt) ${IMPLICITS}{`,
         ...members.map((memberType): string => {
           const width = CairoType.fromSol(
             memberType,
@@ -206,12 +209,12 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(to_elem_loc: felt, from_elem_loc: felt, index: felt) -> (){`,
+        `fn ${funcName}_elem(to_elem_loc: felt, from_elem_loc: felt, index: felt) -> () ${IMPLICITS}{`,
         ...stopRecursion,
         `    ${copyCode('to_elem_loc', 'from_elem_loc')}`,
         `    return ${funcName}_elem(to_elem_loc + ${toElemType.width}, from_elem_loc + ${fromElemType.width}, index + 1);`,
         `}`,
-        `func ${funcName}${implicits}(to_elem_loc: felt, from_elem_loc: felt) -> (retLoc: felt){`,
+        `fn ${funcName}(to_elem_loc: felt, from_elem_loc: felt) -> (retLoc: felt) ${IMPLICITS}{`,
         `    ${funcName}_elem(to_elem_loc, from_elem_loc, 0);`,
         `    return (to_elem_loc,);`,
         `}`,
@@ -258,7 +261,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(to_loc: felt, from_loc: felt, length: Uint256) -> (){`,
+        `fn ${funcName}_elem(to_loc: felt, from_loc: felt, length: Uint256) -> () ${IMPLICITS}{`,
         `    if (length.low == 0 and length.high == 0){`,
         `        return ();`,
         `    }`,
@@ -276,7 +279,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `        return ${funcName}_elem(to_loc, from_loc, index);`,
         `    }`,
         `}`,
-        `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
+        `fn ${funcName}(to_loc: felt, from_loc: felt) -> (retLoc: felt) ${IMPLICITS}{`,
         `    let (from_length) = ${fromLengthMapping}.read(from_loc);`,
         `    let (to_length) = ${toLengthMapping}.read(to_loc);`,
         `    ${toLengthMapping}.write(to_loc, from_length);`,
@@ -328,7 +331,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(to_loc: felt, from_elem_loc: felt, length: Uint256, index: Uint256) -> (){`,
+        `fn ${funcName}_elem(to_loc: felt, from_elem_loc: felt, length: Uint256, index: Uint256) -> () ${IMPLICITS}{`,
         `    if (length.low == index.low){`,
         `        if (length.high == index.high){`,
         `            return ();`,
@@ -348,7 +351,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
         `        return ${funcName}_elem(to_loc, from_elem_loc + ${fromElementCairoType.width}, length, next_index);`,
         `    }`,
         `}`,
-        `func ${funcName}${implicits}(to_loc: felt, from_loc: felt) -> (retLoc: felt){`,
+        `fn ${funcName}(to_loc: felt, from_loc: felt) -> (retLoc: felt) ${IMPLICITS}{`,
         `    let from_length  = ${uint256(narrowBigIntSafe(fromType.size))};`,
         `    let (to_length) = ${toLengthMapping}.read(to_loc);`,
         `    ${toLengthMapping}.write(to_loc, from_length);`,
@@ -416,7 +419,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
+        `fn ${funcName}(to_loc : felt, from_loc : felt) -> (ret_loc : felt) ${IMPLICITS}{`,
         `   ${readFromCode}`,
         `   ${scalingCode}`,
         `   ${copyToCode}`,
@@ -462,7 +465,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
+        `fn ${funcName}(to_loc : felt, from_loc : felt) -> (ret_loc : felt) ${IMPLICITS}{`,
         `   ${readFromCode}`,
         `   ${scalingCode}`,
         `   ${copyToCode}`,
@@ -478,7 +481,7 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(to_loc : felt, from_loc : felt) -> (ret_loc : felt){`,
+        `fn ${funcName}(to_loc : felt, from_loc : felt) -> (ret_loc : felt) ${IMPLICITS}{`,
         ...mapRange(width, copyAtOffset),
         `    return (to_loc,);`,
         `}`,
@@ -486,9 +489,6 @@ export class StorageToStorageGen extends StringIndexedFuncGen {
     };
   }
 }
-
-const implicits =
-  '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, bitwise_ptr : BitwiseBuiltin*}';
 
 function copyAtOffset(n: number): string {
   return [

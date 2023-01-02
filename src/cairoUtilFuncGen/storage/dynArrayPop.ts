@@ -85,10 +85,11 @@ export class DynArrayPopGen extends StringIndexedFuncGen {
         : `let (elem_loc) = ${arrayName}.read(loc, newLen);`;
 
     const funcName = `${arrayName}_POP`;
+    const implicits = 'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck)';
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (){`,
+        `fn ${funcName}(loc: felt) -> () ${implicits}{`,
         `    let (len) = ${lengthName}.read(loc);`,
         `    let (isEmpty) = uint256_eq(len, Uint256(0,0));`,
         `    assert isEmpty = 0;`,

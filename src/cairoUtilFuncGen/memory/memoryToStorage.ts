@@ -38,6 +38,9 @@ import { StorageDeleteGen } from '../storage/storageDelete';
   In storage nested structures are stored in place, whereas in memory 'pointers' are used
 */
 
+const IMPLICITS =
+  'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck, warp_memory : DictAccess*)';
+
 export class MemoryToStorageGen extends StringIndexedFuncGen {
   constructor(
     private dynArrayGen: DynArrayGen,
@@ -97,8 +100,6 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
   // like structs with <length> members of the same type
   private createStructCopyFunction(key: string, type: TypeNode): string {
     const funcName = `wm_to_storage${this.generatedFunctions.size}`;
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
     // Set an empty entry so recursive function generation doesn't clash
     this.generatedFunctions.set(key, { name: funcName, code: '' });
@@ -106,7 +107,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(loc : felt, mem_loc: felt) -> (loc: felt){`,
+        `fn ${funcName}(loc : felt, mem_loc: felt) -> (loc: felt) ${IMPLICITS}{`,
         ...generateCopyInstructions(type, this.ast).flatMap(
           ({ storageOffset, copyType }, index) => {
             const elemLoc = `elem_mem_loc_${index}`;
@@ -166,9 +167,6 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     const funcName = `wm_to_storage${this.generatedFunctions.size}`;
     this.generatedFunctions.set(key, { name: funcName, code: '' });
 
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
-
     const elementStorageWidth = CairoType.fromSol(
       type.elementT,
       this.ast,
@@ -202,7 +200,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(storage_loc: felt, mem_loc : felt, length: felt) -> (){`,
+        `fn ${funcName}_elem(storage_loc: felt, mem_loc : felt, length: felt) -> () ${IMPLICITS}{`,
         `    if (length == 0){`,
         `        return ();`,
         `    }`,
@@ -214,7 +212,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         )}, index);`,
         `}`,
 
-        `func ${funcName}${implicits}(loc : felt, mem_loc : felt) -> (loc : felt){`,
+        `fn ${funcName}(loc : felt, mem_loc : felt) -> (loc : felt) ${IMPLICITS}{`,
         `    ${funcName}_elem(loc, mem_loc, ${length});`,
         `    return (loc,);`,
         `}`,
@@ -245,9 +243,6 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     const [elemMapping, lengthMapping] = this.dynArrayGen.gen(
       CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
     );
-
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
     const elementStorageWidth = CairoType.fromSol(
       elementT,
@@ -283,7 +278,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(storage_name: felt, mem_loc : felt, length: Uint256) -> (){`,
+        `fn ${funcName}_elem(storage_name: felt, mem_loc : felt, length: Uint256) -> () ${IMPLICITS}{`,
         `    if (length.low == 0 and length.high == 0){`,
         `        return ();`,
         `    }`,
@@ -302,7 +297,7 @@ export class MemoryToStorageGen extends StringIndexedFuncGen {
         `    }`,
         `}`,
 
-        `func ${funcName}${implicits}(loc : felt, mem_loc : felt) -> (loc : felt){`,
+        `fn ${funcName}(loc : felt, mem_loc : felt) -> (loc : felt) ${IMPLICITS}{`,
         `    let (length) = ${lengthMapping}.read(loc);`,
         `    let (mem_length) = wm_dyn_array_length(mem_loc);`,
         `    ${lengthMapping}.write(loc, mem_length);`,

@@ -67,10 +67,11 @@ export class MemoryWriteGen extends StringIndexedFuncGen {
 
     const cairoTypeString = cairoTypeToWrite.toString();
     const funcName = `WM_WRITE${this.generatedFunctions.size}`;
+    const implicits = 'implicits(warp_memory : DictAccess*)';
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{warp_memory : DictAccess*}(loc: felt, value: ${cairoTypeString}) -> (res: ${cairoTypeString}){`,
+        `fn ${funcName}(loc: felt, value: ${cairoTypeString}) -> (res: ${cairoTypeString}) ${implicits}{`,
         ...cairoTypeToWrite
           .serialiseMembers('value')
           .map((name, index) => `    ${write(index, name)};`),

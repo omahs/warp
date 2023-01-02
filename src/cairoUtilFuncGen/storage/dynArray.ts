@@ -15,10 +15,10 @@ export class DynArrayGen extends StringIndexedFuncGen {
       name: mappingName,
       code: [
         `@storage_var`,
-        `func ${mappingName}(name: felt, index: Uint256) -> (resLoc : felt){`,
+        `fn ${mappingName}(name: felt, index: Uint256) -> (resLoc : felt){`,
         `}`,
         `@storage_var`,
-        `func ${mappingName}_LENGTH(name: felt) -> (index: Uint256){`,
+        `fn ${mappingName}_LENGTH(name: felt) -> (index: Uint256){`,
         `}`,
         ...getDumpFunctions(mappingName),
       ].join('\n'),
@@ -28,9 +28,10 @@ export class DynArrayGen extends StringIndexedFuncGen {
 }
 
 function getDumpFunctions(mappingName: string): string[] {
+  const implicits = 'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck)';
   return INCLUDE_CAIRO_DUMP_FUNCTIONS
     ? [
-        `func DUMP_${mappingName}_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(name: felt, length : felt, ptr: felt*){`,
+        `fn DUMP_${mappingName}_ITER(name: felt, length : felt, ptr: felt*) ${implicits}{`,
         `    if (length == 0){`,
         `        return ();`,
         `    }`,
@@ -40,13 +41,13 @@ function getDumpFunctions(mappingName: string): string[] {
         `    DUMP_${mappingName}_ITER(name, index, ptr);`,
         `    return ();`,
         `}`,
-        `@external`,
-        `func DUMP_${mappingName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(name: felt, length : felt) -> (data_len : felt, data: felt*){`,
+        `#[external]`,
+        `fn DUMP_${mappingName}(name: felt, length : felt) -> (data_len : felt, data: felt*) ${implicits}{`,
         `    let (p: felt*) = alloc();`,
         `    DUMP_${mappingName}_ITER(name, length, p);`,
         `    return (length, p);`,
         `}`,
-        `func DUMP_${mappingName}_LENGTH_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt, ptr: felt*){`,
+        `fn DUMP_${mappingName}_LENGTH_ITER(length : felt, ptr: felt*) ${implicits}{`,
         `    if (length == 0){`,
         `        return ();`,
         `    }`,
@@ -57,8 +58,8 @@ function getDumpFunctions(mappingName: string): string[] {
         `    DUMP_${mappingName}_LENGTH_ITER(index, ptr);`,
         `    return ();`,
         `}`,
-        `@external`,
-        `func DUMP_${mappingName}_LENGTH{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt) -> (data_len : felt, data: felt*){`,
+        `#[external]`,
+        `fn DUMP_${mappingName}_LENGTH(length : felt) -> (data_len : felt, data: felt*) ${implicits}{`,
         `    let (p: felt*) = alloc();`,
         `    DUMP_${mappingName}_LENGTH_ITER(length, p);`,
         `    return (length*2, p);`,

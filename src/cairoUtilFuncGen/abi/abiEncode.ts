@@ -26,8 +26,7 @@ import { delegateBasedOnType, mul } from '../base';
 import { MemoryReadGen } from '../memory/memoryRead';
 import { AbiBase, removeSizeInfo } from './base';
 
-const IMPLICITS =
-  '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+const IMPLICITS = 'implicits(bitwise_ptr : BitwiseBuiltin*, RangeCheck, warp_memory : DictAccess*)';
 
 /**
  * Given any data type produces the same output of solidty abi.encode
@@ -69,7 +68,7 @@ export class AbiEncode extends AbiBase {
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
+      `fn ${funcName}(${cairoParams}) -> (result_ptr : felt) ${IMPLICITS}{`,
       `  let bytes_index : felt = 0;`,
       `  let bytes_offset : felt = ${initialOffset};`,
       `  let (bytes_array : felt*) = alloc();`,
@@ -201,13 +200,13 @@ export class AbiEncode extends AbiBase {
     const tailEncoding = this.createDynamicArrayTailEncoding(type);
     const name = `${this.functionName}_head_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}(`,
       `  bytes_index: felt,`,
       `  bytes_offset: felt,`,
       `  bytes_array: felt*,`,
       `  element_offset: felt,`,
       `  mem_ptr : felt`,
-      `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
+      `) -> (final_bytes_index : felt, final_bytes_offset : felt) ${IMPLICITS}{`,
       `  // Storing pointer to data`,
       `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset);`,
       `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256);`,
@@ -261,7 +260,7 @@ export class AbiEncode extends AbiBase {
     );
     const name = `${this.functionName}_tail_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
@@ -269,7 +268,7 @@ export class AbiEncode extends AbiBase {
       `  index : felt,`,
       `  length : felt,`,
       `  mem_ptr : felt`,
-      `) -> (final_offset : felt){`,
+      `) -> (final_offset : felt) ${IMPLICITS}{`,
       `  if (index == length){`,
       `     return (final_offset=bytes_offset);`,
       `  }`,
@@ -301,13 +300,13 @@ export class AbiEncode extends AbiBase {
 
     const name = `${this.functionName}_head_static_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
       `  element_offset : felt,`,
       `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
+      `) -> (final_bytes_index : felt, final_bytes_offset : felt) ${IMPLICITS}{`,
       `  // Storing pointer to data`,
       `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset);`,
       `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256);`,
@@ -356,7 +355,7 @@ export class AbiEncode extends AbiBase {
 
     const name = `${this.functionName}_inline_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}${IMPLICITS}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
@@ -364,7 +363,7 @@ export class AbiEncode extends AbiBase {
       `  mem_index : felt,`,
       `  mem_length : felt,`,
       `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
+      `) -> (final_bytes_index : felt, final_bytes_offset : felt) ${IMPLICITS}{`,
       `  if (mem_index == mem_length){`,
       `     return (final_bytes_index=bytes_index, final_bytes_offset=bytes_offset);`,
       `  }`,
@@ -408,13 +407,13 @@ export class AbiEncode extends AbiBase {
 
     const name = `${this.functionName}_head_${def.name}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}${IMPLICITS}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
       `  element_offset : felt,`,
       `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
+      `) -> (final_bytes_index : felt, final_bytes_offset : felt) ${IMPLICITS}{`,
       `  // Storing pointer to data`,
       `  let (bytes_offset256) = felt_to_uint256(bytes_offset - element_offset);`,
       `  ${this.createValueTypeHeadEncoding()}(bytes_index, bytes_array, 0, bytes_offset256);`,
@@ -463,13 +462,13 @@ export class AbiEncode extends AbiBase {
 
     const name = `${this.functionName}_inline_struct_${def.name}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}${IMPLICITS}(`,
       `  bytes_index : felt,`,
       `  bytes_offset : felt,`,
       `  bytes_array : felt*,`,
       `  element_offset : felt,`,
       `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt, final_bytes_offset : felt){`,
+      `) -> (final_bytes_index : felt, final_bytes_offset : felt) ${IMPLICITS}{`,
       ...instructions,
       `  return (bytes_index, bytes_offset);`,
       `}`,

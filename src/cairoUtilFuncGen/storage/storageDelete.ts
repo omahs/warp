@@ -25,6 +25,8 @@ import { add, CairoFunction, delegateBasedOnType, StringIndexedFuncGen } from '.
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
 
+const IMPLICITS = 'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck)';
+
 export class StorageDeleteGen extends StringIndexedFuncGen {
   private nothingHandlerGen: boolean;
   constructor(
@@ -114,11 +116,10 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   private deleteGeneric(cairoType: CairoType, funcName: string): CairoFunction {
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(loc: felt){`,
+        `fn ${funcName}(loc: felt) ${IMPLICITS}{`,
         ...mapRange(cairoType.width, (n) => `    WARP_STORAGE.write(${add('loc', n)}, 0);`),
         `    return ();`,
         `}`,
@@ -130,8 +131,6 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     type: ArrayType | BytesType | StringType,
     funcName: string,
   ): CairoFunction {
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
-
     const elementT = dereferenceType(getElementType(type));
     const [arrayName, lengthName] = this.dynArrayGen.gen(
       CairoType.fromSol(elementT, this.ast, TypeConversionContext.StorageAllocation),
@@ -145,7 +144,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       : [`    ${this.getOrCreate(elementT)}(elem_loc);`];
 
     const deleteFunc = [
-      `func ${funcName}_elem${implicits}(loc : felt, index : Uint256, length : Uint256){`,
+      `fn ${funcName}_elem(loc : felt, index : Uint256, length : Uint256) ${IMPLICITS}{`,
       `     let (stop) = uint256_eq(index, length);`,
       `     if (stop == 1){`,
       `        return ();`,
@@ -155,7 +154,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       `     let (next_index, _) = uint256_add(index, ${uint256(1)});`,
       `     return ${funcName}_elem(loc, next_index, length);`,
       `}`,
-      `func ${funcName}${implicits}(loc : felt){`,
+      `fn ${funcName}(loc : felt) ${IMPLICITS}{`,
       `   let (length) = ${lengthName}.read(loc);`,
       `   ${lengthName}.write(loc, ${uint256(0)});`,
       `   return ${funcName}_elem(loc, ${uint256(0)}, length);`,
@@ -171,7 +170,6 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
   private deleteSmallStaticArray(type: ArrayType, funcName: string) {
     assert(type.size !== undefined);
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
     const code = [
       ...this.generateStructDeletionCode(
@@ -183,14 +181,13 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
 
     return {
       name: funcName,
-      code: [`func ${funcName}${implicits}(loc : felt){`, ...code].join('\n'),
+      code: [`fn ${funcName}(loc : felt) ${IMPLICITS}{`, ...code].join('\n'),
     };
   }
 
   private deleteLargeStaticArray(type: ArrayType, funcName: string) {
     assert(type.size !== undefined);
 
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const elementT = dereferenceType(type.elementT);
     const elementTWidht = CairoType.fromSol(
       elementT,
@@ -207,7 +204,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
     const length = narrowBigIntSafe(type.size);
     const nextLoc = add('loc', elementTWidht);
     const deleteFunc = [
-      `func ${funcName}_elem${implicits}(loc : felt, index : felt){`,
+      `fn ${funcName}_elem(loc : felt, index : felt) ${IMPLICITS}{`,
       `     if (index == ${length}){`,
       `        return ();`,
       `     }`,
@@ -215,7 +212,7 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
       ...deleteCode,
       `     return ${funcName}_elem(${nextLoc}, next_index);`,
       `}`,
-      `func ${funcName}${implicits}(loc : felt){`,
+      `fn ${funcName}(loc : felt) ${IMPLICITS}{`,
       `   return ${funcName}_elem(loc, 0);`,
       `}`,
     ].join('\n');
@@ -228,10 +225,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   private deleteStruct(structDef: StructDefinition, funcName: string): CairoFunction {
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     // struct names are unique
     const deleteFunc = [
-      `func ${funcName}${implicits}(loc : felt){`,
+      `fn ${funcName}(loc : felt) ${IMPLICITS}{`,
       ...this.generateStructDeletionCode(
         structDef.vMembers.map((varDecl) => safeGetNodeType(varDecl, this.ast.compilerVersion)),
       ),
@@ -243,10 +239,9 @@ export class StorageDeleteGen extends StringIndexedFuncGen {
   }
 
   private deleteNothing(funcName: string): CairoFunction {
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     return {
       name: funcName,
-      code: [`func ${funcName}${implicits}(loc: felt){`, `    return ();`, `}`].join('\n'),
+      code: [`fn ${funcName}(loc: felt) ${IMPLICITS}{`, `    return ();`, `}`].join('\n'),
     };
   }
 

@@ -25,8 +25,7 @@ import { delegateBasedOnType, mul } from '../base';
 import { MemoryReadGen } from '../memory/memoryRead';
 import { AbiBase, removeSizeInfo } from './base';
 
-const IMPLICITS =
-  '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+const IMPLICITS = 'implicits(bitwise_ptr : BitwiseBuiltin*, RangeCheck, warp_memory : DictAccess*)';
 
 /**
  * It is a special class used for encoding of indexed arguments in events.
@@ -65,7 +64,7 @@ export class IndexEncode extends AbiBase {
     const cairoParams = params.map((p) => `${p.name} : ${p.type}`).join(', ');
     const funcName = `${this.functionName}${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (result_ptr : felt){`,
+      `fn ${funcName}(${cairoParams}) -> (result_ptr : felt) ${IMPLICITS}{`,
       `  let bytes_index : felt = 0;`,
       `  let (bytes_array : felt*) = alloc();`,
       ...encodings,
@@ -185,11 +184,11 @@ export class IndexEncode extends AbiBase {
     const tailEncoding = this.createDynamicArrayTailEncoding(type);
     const name = `${this.functionName}_head_dynamic_array_spl${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}(`,
       `  bytes_index: felt,`,
       `  bytes_array: felt*,`,
       `  mem_ptr : felt`,
-      `) -> (final_bytes_index : felt){`,
+      `) -> (final_bytes_index : felt) ${IMPLICITS}{`,
       `  let (length256) = wm_dyn_array_length(mem_ptr);`,
       `  let (length) = narrow_safe(length256);`,
       `  // Storing the element values encoding`,
@@ -226,13 +225,13 @@ export class IndexEncode extends AbiBase {
     const headEncodingCode = this.generateEncodingCode(elementT, 'bytes_index', 'elem');
     const name = `${this.functionName}_tail_dynamic_array_spl${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_array : felt*,`,
       `  index : felt,`,
       `  length : felt,`,
       `  mem_ptr : felt`,
-      `) -> (final_index : felt){`,
+      `) -> (final_index : felt) ${IMPLICITS}{`,
       `  if (index == length){`,
       `     return (final_index=bytes_index);`,
       `  }`,
@@ -261,11 +260,11 @@ export class IndexEncode extends AbiBase {
 
     const name = `${this.functionName}_head_static_array_spl${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_array : felt*,`,
       `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt){`,
+      `) -> (final_bytes_index : felt) ${IMPLICITS}{`,
       `  let length = ${type.size};`,
       `  // Storing the data values encoding`,
       `  let (bytes_index) = ${inlineEncoding}(`,
@@ -300,13 +299,13 @@ export class IndexEncode extends AbiBase {
 
     const name = `${this.functionName}_inline_array_spl${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_array : felt*,`,
       `  mem_index : felt,`,
       `  mem_length : felt,`,
       `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt){`,
+      `) -> (final_bytes_index : felt) ${IMPLICITS}{`,
       `  if (mem_index == mem_length){`,
       `     return (final_bytes_index=bytes_index);`,
       `  }`,
@@ -336,11 +335,11 @@ export class IndexEncode extends AbiBase {
 
     const name = `${this.functionName}_head_spl_${def.name}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_array : felt*,`,
       `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt){`,
+      `) -> (final_bytes_index : felt) ${IMPLICITS}{`,
       `  // Storing the data values encoding`,
       `  let (bytes_index) = ${inlineEncoding}(`,
       `    bytes_index,`,
@@ -376,11 +375,11 @@ export class IndexEncode extends AbiBase {
 
     const name = `${this.functionName}_inline_struct_spl_${def.name}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}(`,
       `  bytes_index : felt,`,
       `  bytes_array : felt*,`,
       `  mem_ptr : felt,`,
-      `) -> (final_bytes_index : felt){`,
+      `) -> (final_bytes_index : felt) ${IMPLICITS}{`,
       ...instructions,
       `  return (bytes_index,);`,
       `}`,

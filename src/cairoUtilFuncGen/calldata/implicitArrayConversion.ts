@@ -24,6 +24,9 @@ import { DynArrayGen } from '../storage/dynArray';
 import { DynArrayIndexAccessGen } from '../storage/dynArrayIndexAccess';
 import { StorageWriteGen } from '../storage/storageWrite';
 
+const IMPLICITS =
+  '{syscall_ptr : felt*, RangeCheck, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
+
 export class ImplicitArrayConversion extends StringIndexedFuncGen {
   constructor(
     private storageWriteGen: StorageWriteGen,
@@ -185,10 +188,8 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       sizeSource,
     );
 
-    const implicit =
-      '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const code = [
-      `func ${funcName}${implicit}(storage_loc: felt, arg: ${cairoSourceType.toString()}){`,
+      `fn ${funcName}(storage_loc: felt, arg: ${cairoSourceType.toString()}) ${IMPLICITS}{`,
       ...copyInstructions,
       '    return ();',
       '}',
@@ -318,10 +319,8 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       sizeSource,
     );
 
-    const implicit =
-      '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const code = [
-      `func ${funcName}${implicit}(ref: felt, arg: ${cairoSourceTypeString}){`,
+      `fn ${funcName}(ref: felt, arg: ${cairoSourceTypeString}) ${IMPLICITS}{`,
       isDynamicStorageArray(targetType)
         ? `    ${dynArrayLengthName}.write(ref, ${uint256(sourceType.to.size)});`
         : '',
@@ -460,14 +459,12 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
     assert(cairoSourceType instanceof CairoDynArray);
 
     const dynArrayLengthName = this.dynArrayGen.gen(cairoTargetElementType)[1];
-    const implicit =
-      '{syscall_ptr : felt*, range_check_ptr, pedersen_ptr : HashBuiltin*, bitwise_ptr : BitwiseBuiltin*}';
     const loaderName = `DY_LOADER${this.generatedFunctions.size}`;
 
     const copyInstructions = this.generateDynCopyInstructions(targetElmType, sourceElmType);
 
     const code = [
-      `func ${loaderName}${implicit}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt){`,
+      `fn ${loaderName}(ref: felt, len: felt, ptr: ${cairoSourceType.ptr_member.toString()}*, target_index: felt) ${IMPLICITS}{`,
       `    if (len == 0){`,
       `      return ();`,
       `    }`,
@@ -479,7 +476,7 @@ export class ImplicitArrayConversion extends StringIndexedFuncGen {
       `    return ${loaderName}(ref, len - 1, ptr + ${cairoSourceType.ptr_member.width}, target_index+ 1 );`,
       `}`,
       ``,
-      `func ${funcName}${implicit}(ref: felt, source: ${cairoSourceType.toString()}){`,
+      `fn ${funcName}(ref: felt, source: ${cairoSourceType.toString()}) ${IMPLICITS}{`,
       `    ${dynArrayLengthName}.write(ref, Uint256(source.len, 0));`,
       `    ${loaderName}(ref, source.len, source.ptr, 0);`,
       '    return ();',

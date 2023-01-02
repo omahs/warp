@@ -30,7 +30,7 @@ export const BYTES_IN_FELT_PACKING = 31;
 const BIG_ENDIAN = 1; // 0 for little endian, used for packing of bytes (31 byte felts -> a 248 bit felt)
 
 const IMPLICITS =
-  '{syscall_ptr: felt*, bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*, keccak_ptr: felt*}';
+  'implicits(syscall_ptr: felt*, bitwise_ptr : BitwiseBuiltin*, RangeCheck, warp_memory : DictAccess*, keccak_ptr: felt*)';
 
 /**
  * Generates a cairo function that emits an event through a cairo syscall.
@@ -121,7 +121,7 @@ export class EventFunction extends StringIndexedFuncGen {
       ) & BigInt(MASK_250);
 
     const code = [
-      `func ${this.funcName}${key}${IMPLICITS}(${cairoParams}){`,
+      `fn ${this.funcName}${key}(${cairoParams}) ${IMPLICITS}{`,
       `   // keys arrays`,
       `   let keys_len: felt = 0;`,
       `   let (keys: felt*) = alloc();`,

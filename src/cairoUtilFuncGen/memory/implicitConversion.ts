@@ -36,7 +36,7 @@ import { MemoryWriteGen } from './memoryWrite';
   Only int/uint or fixed bytes implicit conversions
 */
 
-const IMPLICITS = '{range_check_ptr, bitwise_ptr : BitwiseBuiltin*, warp_memory : DictAccess*}';
+const IMPLICITS = 'implicits(RangeCheck, bitwise_ptr : BitwiseBuiltin*, warp_memory : DictAccess*)';
 
 export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
   constructor(
@@ -193,7 +193,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     const allocSize = narrowBigIntSafe(targetType.size) * cairoTargetElementType.width;
     const funcName = `memory_conversion_static_to_static${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}_copy${IMPLICITS}(source : felt, target : felt, index : felt){`,
+      `fn ${funcName}_copy(source : felt, target : felt, index : felt) ${IMPLICITS}{`,
       `   if (index == ${sourceType.size}){`,
       `       return ();`,
       `   }`,
@@ -203,7 +203,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `   return ${funcName}_copy(source, target, index + 1);`,
       `}`,
 
-      `func ${funcName}${IMPLICITS}(source : felt) -> (target : felt){`,
+      `fn ${funcName}(source : felt) -> (target : felt) ${IMPLICITS}{`,
       `   let (target) = wm_alloc(${uint256(allocSize)});`,
       `   ${funcName}_copy(source, target, 0);`,
       `   return(target,);`,
@@ -259,7 +259,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
 
     const funcName = `memory_conversion_static_to_dynamic${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}_copy${IMPLICITS}(source : felt, target : felt, index : Uint256, len : Uint256){`,
+      `fn ${funcName}_copy(source : felt, target : felt, index : Uint256, len : Uint256) ${IMPLICITS}{`,
       `   if (len.low == index.low and len.high == index.high){`,
       `       return ();`,
       `   }`,
@@ -269,7 +269,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `   let (next_index, _) = uint256_add(index, ${uint256(1)});`,
       `   return ${funcName}_copy(source, target, next_index, len);`,
       `}`,
-      `func ${funcName}${IMPLICITS}(source : felt) -> (target : felt){`,
+      `fn ${funcName}(source : felt) -> (target : felt) ${IMPLICITS}{`,
       `   let len = ${uint256(sourceType.size)};`,
       `   let (target) = wm_new(len, ${uint256(targetTWidth)});`,
       `   ${funcName}_copy(source, target, Uint256(0, 0), len);`,
@@ -324,7 +324,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
     const targetWidth = cairoTargetElementType.width;
     const funcName = `memory_conversion_dynamic_to_dynamic${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}_copy${IMPLICITS}(source : felt, target : felt, index : Uint256, len : Uint256){`,
+      `fn ${funcName}_copy(source : felt, target : felt, index : Uint256, len : Uint256) ${IMPLICITS}{`,
       `   if (len.low == index.low and len.high == index.high){`,
       `       return ();`,
       `   }`,
@@ -335,7 +335,7 @@ export class MemoryImplicitConversionGen extends StringIndexedFuncGen {
       `   return ${funcName}_copy(source, target, next_index, len);`,
       `}`,
 
-      `func ${funcName}${IMPLICITS}(source : felt) -> (target : felt){`,
+      `fn ${funcName}(source : felt) -> (target : felt) ${IMPLICITS}{`,
       `   let (len) = wm_dyn_array_length(source);`,
       `   let (target) = wm_new(len, ${uint256(targetWidth)});`,
       `   ${funcName}_copy(source, target, Uint256(0, 0), len);`,

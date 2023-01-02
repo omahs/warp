@@ -83,10 +83,12 @@ export class MemoryStructGen extends StringIndexedFuncGen {
       .map(([name, type]) => `${name}: ${type.toString()}`)
       .join(', ');
 
+    const implicits = 'implicits(RangeCheck, warp_memory: DictAccess*)';
+
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{range_check_ptr, warp_memory: DictAccess*}(${argString}) -> (res:felt){`,
+        `fn ${funcName}(${argString}) -> (res:felt) ${implicits}{`,
         `    let (start) = wm_alloc(${uint256(structType.width)});`,
         mangledStructMembers
           .flatMap(([name, type]) => type.serialiseMembers(name))

@@ -43,7 +43,7 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
     const implicits = this.getImplicits(node);
 
     return [
-      [documentation, ...decorator, `func ${name}${implicits}(${args})${returns}{`, body, `}`]
+      [documentation, ...decorator, `fn ${name}(${args})${returns} ${implicits}{`, body, `}`]
         .filter(notNull)
         .join('\n'),
     ];
@@ -133,7 +133,7 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
       (i) => !isExternallyVisible(node) || (i !== 'warp_memory' && i !== 'keccak_ptr'),
     );
     if (implicits.length === 0) return '';
-    return `{${implicits
+    return `implicits(${implicits
       .sort(implicitOrdering)
       .map((implicit) => `${implicit} : ${implicitTypes[implicit]}`)
       .join(', ')}}`;

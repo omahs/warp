@@ -60,10 +60,11 @@ export class StorageWriteGen extends StringIndexedFuncGen {
 
     const cairoTypeString = cairoTypeToWrite.toString();
     const funcName = `WS_WRITE${this.generatedFunctions.size}`;
+    const implicits = 'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck)';
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt, value: ${cairoTypeString}) -> (res: ${cairoTypeString}){`,
+        `fn ${funcName}(loc: felt, value: ${cairoTypeString}) -> (res: ${cairoTypeString}) ${implicits}{`,
         ...cairoTypeToWrite
           .serialiseMembers('value')
           .map((name, index) => `    ${write(add('loc', index), name)}`),

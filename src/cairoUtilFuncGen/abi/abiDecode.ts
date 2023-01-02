@@ -37,8 +37,7 @@ import { add, delegateBasedOnType, mul, StringIndexedFuncGenWithAuxiliar } from 
 import { MemoryWriteGen } from '../export';
 import { removeSizeInfo } from './base';
 
-const IMPLICITS =
-  '{bitwise_ptr : BitwiseBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+const IMPLICITS = 'implicits(bitwise_ptr : BitwiseBuiltin*, RangeCheck, warp_memory : DictAccess*)';
 
 export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
   protected functionName = 'abi_decode';
@@ -125,7 +124,7 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
     const returnValues = returnParams.map((r) => `${r.name} = ${r.name}`).join(',');
     const funcName = `${this.functionName}${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(mem_ptr : felt) -> (${returnCairoParams}){`,
+      `fn ${funcName}(mem_ptr : felt) -> (${returnCairoParams}) ${IMPLICITS}{`,
       `  let max_index_length: felt = ${indexLength};`,
       `  let mem_index: felt = 0;`,
       ...decodings,
@@ -326,13 +325,13 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     const name = `${this.functionName}_static_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}(`,
       `  mem_index: felt,`,
       `  mem_ptr: felt,`,
       `  array_index: felt,`,
       `  array_length: felt,`,
       `  array_ptr: felt,`,
-      `){`,
+      `) ${IMPLICITS}{`,
       `  if (array_index == array_length) {`,
       `    return ();`,
       `  }`,
@@ -375,13 +374,13 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     const name = `${this.functionName}_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}(`,
       `  mem_index: felt,`,
       `  mem_ptr: felt,`,
       `  dyn_array_index: felt,`,
       `  dyn_array_length: felt,`,
       `  dyn_array_ptr: felt`,
-      `){`,
+      `) ${IMPLICITS}{`,
       `  if (dyn_array_index == dyn_array_length){`,
       `    return ();`,
       `  }`,
@@ -439,11 +438,11 @@ export class AbiDecode extends StringIndexedFuncGenWithAuxiliar {
 
     const name = `${this.functionName}_struct_${definition.name}`;
     const code = [
-      `func ${name}${IMPLICITS}(`,
+      `fn ${name}(`,
       `  mem_index: felt,`,
       `  mem_ptr: felt,`,
       `  struct_ptr: felt`,
-      `){`,
+      `) ${IMPLICITS}{`,
       ...instructions,
       `  return ();`,
       `}`,

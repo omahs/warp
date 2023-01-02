@@ -71,6 +71,8 @@ export function uint256TransformStructs(
   const transformedStructsFuncs: string[] = [];
   const structTuplesMap: Map<string, StructAbiItemType> = new Map();
 
+  const implicits = 'implicits(syscall_ptr: felt*, RangeCheck)';
+
   structDependency.forEach((itm: StructAbiItemType) => {
     const item: StructAbiItemType = copyStructItem(itm);
     const castFunctionBody: string[] = [];
@@ -102,11 +104,11 @@ export function uint256TransformStructs(
 
     transformedStructsFuncs.push(
       [
-        `func ${item.name}_cast{syscall_ptr: felt*, range_check_ptr: felt}(frm : ${item.name}_uint256) -> (to : ${item.name}) {`,
+        `fn ${item.name}_cast(frm : ${item.name}_uint256) -> (to : ${item.name}) ${implicits}{`,
         ...castFunctionBody,
         `${INDENT}return (${item.name}(${item.members.map((x) => `${x.name}`).join(',')}),);`,
         '}',
-        `func ${item.name}_cast_reverse{syscall_ptr: felt*, range_check_ptr: felt}(frm : ${item.name}) -> (to : ${item.name}_uint256) {`,
+        `fn ${item.name}_cast_reverse(frm : ${item.name}) -> (to : ${item.name}_uint256) ${implicits}{`,
         ...castReverseFunctionBody,
         `${INDENT}return (${item.name}_uint256(${item.members.map((x) => x.name).join(',')}),);`,
         '}',

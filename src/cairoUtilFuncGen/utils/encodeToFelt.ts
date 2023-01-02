@@ -167,7 +167,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     const cairoParams = parameters.join(',');
     const funcName = `encode_as_felt${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(${cairoParams}) -> (calldata_array : ${resultStruct}){`,
+      `fn ${funcName}(${cairoParams}) -> (calldata_array : ${resultStruct}) ${IMPLICITS}{`,
       `   let total_size : felt = 0;`,
       `   let (decode_array : felt*) = alloc();`,
       ...encodeCode,
@@ -248,13 +248,13 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
     const elemenT = getElementType(type);
     const funcName = `encode_dynamic_array${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(`,
+      `fn ${funcName}(`,
       `   to_index : felt,`,
       `   to_array : felt*,`,
       `   from_index: felt,`,
       `   from_size: felt,`,
       `   from_array: ${cairoElementType.toString()}*`,
-      `) -> (total_copied : felt){`,
+      `) -> (total_copied : felt) ${IMPLICITS}{`,
 
       `   if (from_index == from_size){`,
       `      return (total_copied=to_index,);`,
@@ -284,9 +284,9 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
 
     const funcName = `encode_struct_${cairoType.name}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(`,
+      `fn ${funcName}(`,
       `   to_index : felt, to_array : felt*, from_struct : ${cairoType.toString()}`,
-      `) -> (total_copied : felt){`,
+      `) -> (total_copied : felt) ${IMPLICITS}{`,
 
       ...encodeCode,
       `    return (to_index,);`,
@@ -309,7 +309,7 @@ export class EncodeAsFelt extends StringIndexedFuncGen {
 
     const funcName = `encode_static_size${type.size}_array_${this.auxiliarGeneratedFunctions.size}`;
     const code = [
-      `func ${funcName}${IMPLICITS}(to_index : felt, to_array : felt*, from_static_array : ${cairoType.toString()}) -> (total_copied : felt){`,
+      `fn ${funcName}(to_index : felt, to_array : felt*, from_static_array : ${cairoType.toString()}) -> (total_copied : felt) ${IMPLICITS}{`,
 
       ...encodeCode,
       `    return (to_index,);`,

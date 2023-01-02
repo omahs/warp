@@ -135,8 +135,8 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     const funcName = `${arrayName}_PUSHV${this.generatedFunctions.size}`;
     const implicits =
       argLoc === DataLocation.Memory
-        ? '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory: DictAccess*}'
-        : '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, bitwise_ptr: BitwiseBuiltin*}';
+        ? 'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck, warp_memory: DictAccess*)'
+        : 'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck, bitwise_ptr: BitwiseBuiltin*)';
 
     const callWriteFunc = (cairoVar: string) =>
       isDynamicArray(argType) || argType instanceof MappingType
@@ -146,7 +146,7 @@ export class DynArrayPushWithArgGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(loc: felt, value: ${inputType}) -> (){`,
+        `fn ${funcName}(loc: felt, value: ${inputType}) -> () ${implicits}{`,
         `    let (len) = ${lengthName}.read(loc);`,
         `    let (newLen, carry) = uint256_add(len, Uint256(1,0));`,
         `    assert carry = 0;`,

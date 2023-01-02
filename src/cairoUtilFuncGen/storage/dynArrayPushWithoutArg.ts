@@ -43,10 +43,11 @@ export class DynArrayPushWithoutArgGen extends StringIndexedFuncGen {
 
     const [arrayName, lengthName] = this.dynArrayGen.gen(elementType);
     const funcName = `${arrayName}_PUSH`;
+    const implicits = 'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck)';
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (newElemLoc: felt){`,
+        `fn ${funcName}(loc: felt) -> (newElemLoc: felt) ${implicits}{`,
         `    let (len) = ${lengthName}.read(loc);`,
         `    let (newLen, carry) = uint256_add(len, Uint256(1,0));`,
         `    assert carry = 0;`,

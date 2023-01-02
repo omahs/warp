@@ -110,14 +110,14 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}_elem${implicits}(calldata: ${callDataType.vPtr}, mem_start: felt, length: felt){`,
+        `fn ${funcName}_elem(calldata: ${callDataType.vPtr}, mem_start: felt, length: felt) ${implicits}{`,
         `    if (length == 0){`,
         `        return ();`,
         `    }`,
         copyCode,
         `    return ${funcName}_elem(calldata + ${callDataType.vPtr.to.width}, mem_start + ${memoryElementWidth}, length - 1);`,
         `}`,
-        `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt){`,
+        `fn ${funcName}(calldata : ${callDataType}) -> (mem_loc: felt) ${implicits}{`,
         `    let (len256) = felt_to_uint256(calldata.len);`,
         `    let (mem_start) = wm_new(len256, ${uint256(memoryElementWidth)});`,
         `    ${funcName}_elem(calldata.ptr, mem_start + 2, calldata.len);`,
@@ -162,7 +162,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt){`,
+        `fn ${funcName}(calldata : ${callDataType}) -> (mem_loc: felt) ${implicits}{`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
         ...mapRange(narrowBigIntSafe(type.size), (n) => copyCode(n)),
         `    return (mem_start,);`,
@@ -184,7 +184,7 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
     return {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(calldata : ${callDataType}) -> (mem_loc: felt){`,
+        `fn ${funcName}(calldata : ${callDataType}) -> (mem_loc: felt) ${implicits}{`,
         `    let (mem_start) = wm_alloc(${uint256(memoryType.width)});`,
         ...structDef.vMembers.map((decl): string => {
           const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
@@ -222,4 +222,4 @@ export class CallDataToMemoryGen extends StringIndexedFuncGen {
 }
 
 const implicits =
-  '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
+  'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck, warp_memory : DictAccess*)';

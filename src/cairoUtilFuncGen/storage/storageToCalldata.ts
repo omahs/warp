@@ -23,6 +23,8 @@ import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/
 import { DynArrayGen } from './dynArray';
 import { StorageReadGen } from './storageRead';
 
+const IMPLICITS = 'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck)';
+
 export class StorageToCalldataGen extends StringIndexedFuncGen {
   constructor(
     private dynArrayGen: DynArrayGen,
@@ -92,10 +94,9 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       'member',
     );
 
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const funcName = `ws_struct_${cairoStruct.toString()}_to_calldata`;
     const code = [
-      `func ${funcName}${implicits}(loc : felt) -> (${structName} : ${cairoStruct.toString()}){`,
+      `fn ${funcName}(loc : felt) -> (${structName} : ${cairoStruct.toString()}) ${IMPLICITS}{`,
       ...copyInstructions,
       `   return (${cairoStruct.toString()}(${members.join(', ')}),);`,
       `}`,
@@ -115,10 +116,9 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       'elem',
     );
 
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
     const funcName = `ws_static_array_to_calldata${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}${implicits}(loc : felt) -> (static_array : ${cairoType.toString()}){`,
+      `fn ${funcName}(loc : felt) -> (static_array : ${cairoType.toString()}) ${IMPLICITS}{`,
 
       ...copyInstructions,
       `    return ((${members.join(', ')}),);`,
@@ -149,15 +149,14 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
     );
 
     const ptrType = `${cairoElementType.toString()}*`;
-    const implicits = '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}';
 
     const funcName = `ws_dynamic_array_to_calldata${this.generatedFunctions.size}`;
     const code = [
-      `func ${funcName}_write${implicits}(`,
+      `fn ${funcName}_write(`,
       `   loc : felt,`,
       `   index : felt,`,
       `   len : felt,`,
-      `   ptr : ${ptrType}) -> (ptr : ${ptrType}){`,
+      `   ptr : ${ptrType}) -> (ptr : ${ptrType}) ${IMPLICITS}{`,
 
       `   if (len == index){`,
       `       return (ptr,);`,
@@ -169,7 +168,7 @@ export class StorageToCalldataGen extends StringIndexedFuncGen {
       `   return ${funcName}_write(loc, index + 1, len, ptr);`,
       `}`,
 
-      `func ${funcName}${implicits}(loc : felt) -> (dyn_array_struct : ${structDef.name}){`,
+      `fn ${funcName}(loc : felt) -> (dyn_array_struct : ${structDef.name}) ${IMPLICITS}{`,
 
       `   let (len_uint256) = ${arrayLen}.read(loc);`,
       `   let len = len_uint256.low + len_uint256.high*128;`,

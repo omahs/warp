@@ -91,12 +91,13 @@ export class MemoryReadGen extends StringIndexedFuncGen {
     }
 
     const funcName = `WM${this.generatedFunctions.size}_READ_${typeToRead.typeName}`;
+    const implicits = 'implicits(RangeCheck, warp_memory : DictAccess*)';
     const resultCairoType = typeToRead.toString();
     const [reads, pack] = serialiseReads(typeToRead, readFelt, readFelt);
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}{range_check_ptr, warp_memory : DictAccess*}(loc: felt) ->(val: ${resultCairoType}){`,
+        `fn ${funcName}(loc: felt) ->(val: ${resultCairoType}) ${implicits}{`,
         ...reads.map((s) => `    ${s}`),
         `    return (${pack},);`,
         '}',

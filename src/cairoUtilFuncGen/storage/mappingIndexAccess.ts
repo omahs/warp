@@ -19,6 +19,8 @@ import { typeNameFromTypeNode } from '../../utils/utils';
 import { locationIfComplexType, StringIndexedFuncGen } from '../base';
 import { DynArrayGen } from './dynArray';
 
+const IMPLICITS = 'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck)';
+
 export class MappingIndexAccessGen extends StringIndexedFuncGen {
   private generatedHashFunctionNumber = 0;
 
@@ -95,9 +97,9 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
       name: funcName,
       code: [
         `@storage_var`,
-        `func ${mappingName}(name: felt, index: ${indexTypeString}) -> (resLoc : felt){`,
+        `fn ${mappingName}(name: felt, index: ${indexTypeString}) -> (resLoc : felt){`,
         `}`,
-        `func ${funcName}{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(name: felt, index: ${indexTypeString}) -> (res: felt){`,
+        `fn ${funcName}(name: felt, index: ${indexTypeString}) -> (res: felt) ${IMPLICITS}{`,
         `    let (existing) = ${mappingName}.read(name, index);`,
         `    if (existing == 0){`,
         `        let (used) = WARP_USED_STORAGE.read();`,
@@ -156,9 +158,9 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
         this.generatedFunctions.set(key, {
           name: funcName,
           code: [
-            `func ${helperFuncName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
+            `fn ${helperFuncName}(`,
             `    name : felt, ptr : felt*, len : felt`,
-            `){`,
+            `) ${IMPLICITS}{`,
 
             `    if (len == 0){`,
             `        return ();`,
@@ -171,9 +173,9 @@ export class MappingIndexAccessGen extends StringIndexedFuncGen {
             `    ${helperFuncName}(name, ptr, index);`,
             `    return ();`,
             `}`,
-            `func ${funcName}{pedersen_ptr : HashBuiltin*, range_check_ptr, syscall_ptr : felt*}(`,
+            `fn ${funcName}(`,
             `    name : felt`,
-            `) -> (hashedValue : felt){`,
+            `) -> (hashedValue : felt) ${IMPLICITS}{`,
 
             `    let (len256) = ${len}.read(name);`,
             `    let (len) = narrow_safe(len256);`,

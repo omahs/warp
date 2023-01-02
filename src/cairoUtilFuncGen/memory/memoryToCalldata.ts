@@ -36,6 +36,9 @@ import { uint256 } from '../../warplib/utils';
 import { add, delegateBasedOnType, StringIndexedFuncGen } from '../base';
 import { ExternalDynArrayStructConstructor } from '../calldata/externalDynArray/externalDynArrayStructConstructor';
 
+const IMPLICITS =
+  'implicits(syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, RangeCheck, warp_memory : DictAccess*)';
+
 export class MemoryToCallDataGen extends StringIndexedFuncGen {
   constructor(
     private dynamicArrayStructGen: ExternalDynArrayStructConstructor,
@@ -89,8 +92,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
 
   private createStructCopyFunction(key: string, type: TypeNode): string {
     const funcName = `wm_to_calldata${this.generatedFunctions.size}`;
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
     const outputType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
 
     assert(type instanceof UserDefinedType);
@@ -104,7 +105,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}){`,
+        `fn ${funcName}(mem_loc : felt) -> (retData: ${outputType.toString()}) ${IMPLICITS}{`,
         ...structDef.vMembers.map((decl, index) => {
           const memberType = safeGetNodeType(decl, this.ast.compilerVersion);
           if (isReferenceType(memberType)) {
@@ -148,8 +149,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
 
   private createStaticArrayCopyFunction(key: string, type: ArrayType): string {
     const funcName = `wm_to_calldata${this.generatedFunctions.size}`;
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
     const outputType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
 
     assert(type.size !== undefined);
@@ -163,7 +162,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(mem_loc : felt) -> (retData: ${outputType.toString()}){`,
+        `fn ${funcName}(mem_loc : felt) -> (retData: ${outputType.toString()}) ${IMPLICITS}{`,
         ...mapRange(length, (index) => {
           if (isReferenceType(elementT)) {
             this.requireImport('warplib.memory', 'wm_read_id');
@@ -206,8 +205,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     const funcName = `wm_to_calldata${this.generatedFunctions.size}`;
     // Set an empty entry so recursive function generation doesn't clash.
     this.generatedFunctions.set(key, { name: funcName, code: '' });
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
     const outputType = CairoType.fromSol(type, this.ast, TypeConversionContext.CallDataRef);
     assert(outputType instanceof CairoDynArray);
@@ -227,7 +224,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(mem_loc: felt) -> (retData: ${outputType.toString()}){`,
+        `fn ${funcName}(mem_loc: felt) -> (retData: ${outputType.toString()}) ${IMPLICITS}{`,
         `    let (len_256) = wm_read_256(mem_loc);`,
         `    let (ptr : ${outputType.vPtr.toString()}) = alloc();`,
         `    let (len_felt) = narrow_safe(len_256);`,
@@ -251,9 +248,6 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     const key = elementT.pp() + 'dynReader';
     // Set an empty entry so recursive function generation doesn't clash
     this.generatedFunctions.set(key, { name: funcName, code: '' });
-
-    const implicits =
-      '{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt, warp_memory : DictAccess*}';
 
     const cairoType = CairoType.fromSol(elementT, this.ast, TypeConversionContext.CallDataRef);
     const memWidth = CairoType.fromSol(elementT, this.ast).width;
@@ -286,7 +280,7 @@ export class MemoryToCallDataGen extends StringIndexedFuncGen {
     this.generatedFunctions.set(funcName, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> (){`,
+        `fn ${funcName}(len: felt, ptr: ${ptrString}*, mem_loc: felt) -> () ${IMPLICITS}{`,
         `    if (len == 0){`,
         `         return ();`,
         `    }`,

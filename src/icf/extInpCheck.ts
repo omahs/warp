@@ -10,12 +10,13 @@ export function externalInputCheckStatement(
   structTuplesMap?: Map<string, StructAbiItemType>,
 ): string {
   if (type === 'Uint256') return `${INDENT}warp_external_input_check_int256(${input});`;
+  const implicits = 'implicits(RangeCheck)';
   if (type.endsWith('*')) {
     const funcName = `external_input_check_${hashType(type)}`;
     expInpFunctionsMap.set(
       type,
       [
-        `func ${funcName}{range_check_ptr : felt}(len: felt, ptr: ${type}) -> (){`,
+        `fn ${funcName}(len: felt, ptr: ${type}) -> () ${implicits}{`,
         `${INDENT}if (len == 0){`,
         `${INDENT}    return ();`,
         `${INDENT}}`,
@@ -39,7 +40,7 @@ export function externalInputCheckStatement(
     expInpFunctionsMap.set(
       type,
       [
-        `func ${funcName}{range_check_ptr : felt}(arg: ${type}) -> (){`,
+        `fn ${funcName}(arg: ${type}) -> () ${implicits}{`,
         ...(struct?.members.map((member) => {
           return externalInputCheckStatement(
             `arg.${member.name}`,

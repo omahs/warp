@@ -60,7 +60,7 @@ function getForwarderInterface(abi: AbiType): string[] {
     ...abi.map((item: AbiItemType) => {
       if (item.type === 'function' && item.name !== '__default__') {
         return [
-          `${INDENT}func ${item.name}(`,
+          `${INDENT}fn ${item.name}(`,
           ...item.inputs.map((input: { name: string; type: string }) => {
             return `${INDENT}${INDENT}${input.name}: ${input.type},`;
           }),
@@ -209,15 +209,15 @@ export function getInteractiveFuncs(
         [],
       );
 
+      const implicits = 'implicits(syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, RangeCheck)';
+
       const funcDef = (isDelegate: boolean) => [
         decorator,
-        `func _ITR_${
-          (isDelegate ? '_delegate_' : '') + item.name
-        } {syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr: felt}(`,
+        `fn _ITR_${(isDelegate ? '_delegate_' : '') + item.name} (`,
         ...funcArgs,
         ') -> (',
         ...funcReturnArgs,
-        ') {',
+        `) ${implicits}{`,
         `${INDENT}// check external input`,
         ...externalInputCheckStatements,
         `${INDENT}// cast inputs`,

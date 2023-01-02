@@ -52,15 +52,15 @@ export class EnumInputCheck extends StringIndexedFuncGen {
 
     assert(type instanceof IntType);
     const funcName = `enum_bound_check${this.generatedFunctions.size}`;
-    const implicits = '{range_check_ptr : felt}';
+    const implicits = 'implicits(RangeCheck)';
     const nMembers = enumDef.vMembers.length;
     const input256Bits = type.nBits === 256;
     this.generatedFunctions.set(key, {
       name: funcName,
       code: [
-        `func ${funcName}${implicits}(${
+        `fn ${funcName}(${
           input256Bits ? 'arg_Uint256 : Uint256' : 'arg : felt'
-        }) -> (arg: felt){`,
+        }) -> (arg: felt) ${implicits}{`,
         input256Bits ? ['    let (arg) = narrow_safe(arg_Uint256);'].join('\n') : ``,
         `    let inRange : felt = is_le_felt(arg, ${nMembers - 1});`,
         `    with_attr error_message("Error: value out-of-bounds. Values passed to must be in enum range (0, ${
