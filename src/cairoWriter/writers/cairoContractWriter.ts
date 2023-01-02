@@ -115,12 +115,16 @@ export class CairoContractWriter extends CairoASTNodeWriter {
 
     return [
       [
+        '#[contract]',
+        `mod ${node.name}{`,
         documentation,
         ...events,
-        `namespace ${node.name}{\n\n${body}\n\n}`,
+        // `namespace ${node.name}{\n\n${body}\n\n}`,
+        `${body}`,
         outsideNamespaceBody,
         storageCode,
-      ].join('\n\n'),
+        '}',
+      ].join('\n'),
     ];
   }
 
