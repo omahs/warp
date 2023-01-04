@@ -25,12 +25,6 @@ import { TranspileFailedError } from '../utils/errors';
 // Development use only
 export class UnsupportedWriters extends ASTMapper {
   static map(ast: AST): AST {
-    // ast.imports.forEach((importMap) => {
-    //   if (importMap.size > 0) {
-    //     throw new TranspileFailedError('Imports are not supported');
-    //   }
-    // });
-
     ast.roots.forEach((sourceUnit) => {
       const mapper = new this();
       mapper.dispatchVisit(sourceUnit, ast);
@@ -55,7 +49,11 @@ export class UnsupportedWriters extends ASTMapper {
         .getGeneratedCode()
         .match(/[a-zA-Z ]+/) !== null
     ) {
-      throw new TranspileFailedError('Generated code is not supported');
+      throw new TranspileFailedError('Generated code is not supported yet');
+    }
+
+    if (ast.getImports(node).size > 0) {
+      throwWarning('Imports are not defined yet');
     }
 
     node.children.forEach((child) => this.dispatchVisit(child, ast));
@@ -87,7 +85,7 @@ export class UnsupportedWriters extends ASTMapper {
 
   visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
     if (node.kind === FunctionKind.Constructor) {
-      throwWarning('How to write constructors has not been determined');
+      throwWarning("Contract's constructor definition is not yet defined");
     }
 
     if (node.kind === FunctionKind.Fallback) {
@@ -115,6 +113,7 @@ export class UnsupportedWriters extends ASTMapper {
   visitLiteral(node: Literal, ast: AST): void {
     if (node.kind === LiteralKind.Number) {
       this.checkType(node, ast);
+      return;
     }
     throw new TranspileFailedError('Writer not implemented for literals different than numbers');
   }
@@ -133,22 +132,21 @@ export class UnsupportedWriters extends ASTMapper {
 
   checkType(node: Expression | VariableDeclaration, ast: AST): void {
     const typeNode = safeGetNodeType(node, ast.compilerVersion);
-    checkType(typeNode);
-  }
-}
 
-function checkType(typeNode: TypeNode) {
-  if (isReferenceType(typeNode)) {
-    throw new TranspileFailedError('Reference types are not supported');
-  }
-
-  if (typeNode instanceof IntType) {
-    if (typeNode.nBits === 256) {
-      throw new TranspileFailedError('u256 numbers are not supported yet');
+    if (isReferenceType(typeNode)) {
+      throw new TranspileFailedError(`Reference types are not supported (${printNode(node)})`);
     }
-    throwWarning(
-      `Numbers smaller than 256 bits are being defined as felt (instead of u${typeNode.nBits})`,
-    );
+
+    if (typeNode instanceof IntType) {
+      if (typeNode.nBits === 256) {
+        throw new TranspileFailedError('u256 numbers are not supported yet');
+      }
+      throwWarning(
+        `Numbers smaller than 256 bits are being defined as felt instead of u${
+          typeNode.nBits
+        } (${printNode(node)})`,
+      );
+    }
   }
 }
 
