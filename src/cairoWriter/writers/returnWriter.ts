@@ -21,12 +21,12 @@ export class ReturnWriter extends CairoASTNodeWriter {
     const documentation = getDocumentation(node.documentation, writer);
     if (node.vExpression) {
       const expWriten = writer.write(node.vExpression);
-      returns =
-        node.vExpression instanceof TupleExpression ||
-        (node.vExpression instanceof FunctionCall &&
-          node.vExpression.kind !== FunctionCallKind.StructConstructorCall)
-          ? expWriten
-          : `(${expWriten},)`;
+      returns = expWriten;
+      // node.vExpression instanceof TupleExpression ||
+      // (node.vExpression instanceof FunctionCall &&
+      //   node.vExpression.kind !== FunctionCallKind.StructConstructorCall)
+      //   ? expWriten
+      //   : `(${expWriten},)`;
     }
 
     const finalizeWarpMemory = this.usesImplicit(WARP_MEMORY, node)

@@ -3,12 +3,7 @@ import { isExternallyVisible } from '../../utils/utils';
 import { CairoContract } from '../../ast/cairoNodes';
 import { TEMP_INTERFACE_SUFFIX } from '../../utils/nameModifiers';
 import { CairoASTNodeWriter } from '../base';
-import {
-  getDocumentation,
-  getInterfaceNameForContract,
-  INCLUDE_CAIRO_DUMP_FUNCTIONS,
-  INDENT,
-} from '../utils';
+import { getDocumentation, getInterfaceNameForContract, INDENT } from '../utils';
 import { interfaceNameMappings } from './sourceUnitWriter';
 
 export class CairoContractWriter extends CairoASTNodeWriter {

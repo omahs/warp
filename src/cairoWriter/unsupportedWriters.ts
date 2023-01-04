@@ -1,7 +1,24 @@
-import { ASTNode, ContractKind, Expression, SourceUnit, Statement } from 'solc-typed-ast';
+import assert from 'assert';
+import { type } from 'os';
+import {
+  ASTNode,
+  Block,
+  ContractKind,
+  Expression,
+  FunctionKind,
+  IntType,
+  Literal,
+  LiteralKind,
+  Return,
+  SourceUnit,
+  Statement,
+  TypeNode,
+  VariableDeclaration,
+} from 'solc-typed-ast';
 import { AST } from '../ast/ast';
-import { CairoContract } from '../ast/cairoNodes';
+import { CairoContract, CairoFunctionDefinition } from '../ast/cairoNodes';
 import { ASTMapper } from '../ast/mapper';
+import { isReferenceType, safeGetNodeType, warning } from '../export';
 import { printNode } from '../utils/astPrinter';
 import { TranspileFailedError } from '../utils/errors';
 
@@ -40,6 +57,8 @@ export class UnsupportedWriters extends ASTMapper {
     ) {
       throw new TranspileFailedError('Generated code is not supported');
     }
+
+    node.children.forEach((child) => this.dispatchVisit(child, ast));
   }
 
   visitCairoContract(node: CairoContract, ast: AST): void {
@@ -62,6 +81,42 @@ export class UnsupportedWriters extends ASTMapper {
     if (node.staticStorageAllocations.size > 0) {
       throw new TranspileFailedError('Storage static variables are not supportd');
     }
+
+    node.children.forEach((child) => this.dispatchVisit(child, ast));
+  }
+
+  visitCairoFunctionDefinition(node: CairoFunctionDefinition, ast: AST): void {
+    if (node.kind === FunctionKind.Constructor) {
+      throwWarning('How to write constructors has not been determined');
+    }
+
+    if (node.kind === FunctionKind.Fallback) {
+      throw new TranspileFailedError('Fallback function writer not implemented');
+    }
+
+    node.vParameters.vParameters.forEach((param) => this.checkType(param, ast));
+    node.vReturnParameters.vParameters.forEach((param) => this.checkType(param, ast));
+
+    if (node.vBody !== undefined) {
+      this.dispatchVisit(node.vBody, ast);
+    }
+  }
+
+  visitBlock(node: Block, ast: AST): void {
+    node.vStatements.forEach((st) => this.dispatchVisit(st, ast));
+  }
+
+  visitReturn(node: Return, ast: AST): void {
+    if (node.vExpression !== undefined) {
+      this.dispatchVisit(node.vExpression, ast);
+    }
+  }
+
+  visitLiteral(node: Literal, ast: AST): void {
+    if (node.kind === LiteralKind.Number) {
+      this.checkType(node, ast);
+    }
+    throw new TranspileFailedError('Writer not implemented for literals different than numbers');
   }
 
   commonVisit(node: ASTNode, _ast: AST): void {
@@ -75,4 +130,28 @@ export class UnsupportedWriters extends ASTMapper {
   visitExpression(node: Expression, _ast: AST): void {
     throw new TranspileFailedError(`Writer not implemented for ${printNode(node)}`);
   }
+
+  checkType(node: Expression | VariableDeclaration, ast: AST): void {
+    const typeNode = safeGetNodeType(node, ast.compilerVersion);
+    checkType(typeNode);
+  }
+}
+
+function checkType(typeNode: TypeNode) {
+  if (isReferenceType(typeNode)) {
+    throw new TranspileFailedError('Reference types are not supported');
+  }
+
+  if (typeNode instanceof IntType) {
+    if (typeNode.nBits === 256) {
+      throw new TranspileFailedError('u256 numbers are not supported yet');
+    }
+    throwWarning(
+      `Numbers smaller than 256 bits are being defined as felt (instead of u${typeNode.nBits})`,
+    );
+  }
+}
+
+function throwWarning(message: string) {
+  console.log(`${warning('WARNING:')} ${message}`);
 }

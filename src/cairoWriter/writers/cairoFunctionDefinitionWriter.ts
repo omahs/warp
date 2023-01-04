@@ -50,7 +50,7 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
   }
 
   private getDecorator(node: CairoFunctionDefinition): string[] {
-    if (node.kind === FunctionKind.Constructor) return ['@constructor'];
+    if (node.kind === FunctionKind.Constructor) return ['#[constructor]'];
     const decorators: string[] = [];
     if (node.kind === FunctionKind.Fallback) {
       decorators.push('@raw_input');
@@ -61,8 +61,8 @@ export class CairoFunctionDefinitionWriter extends CairoASTNodeWriter {
       if (
         [FunctionStateMutability.Pure, FunctionStateMutability.View].includes(node.stateMutability)
       )
-        decorators.push('@view');
-      else decorators.push('@external');
+        decorators.push('#[view]');
+      else decorators.push('#[external]');
     }
 
     return decorators;
