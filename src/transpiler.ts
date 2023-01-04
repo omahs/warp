@@ -3,6 +3,7 @@ import { CompilationOptions, PrintOptions, TranspilationOptions } from '.';
 import { AST } from './ast/ast';
 import { ASTMapper } from './ast/mapper';
 import { CairoASTMapping } from './cairoWriter';
+import { UnsupportedWriters } from './cairoWriter/unsupportedWriters';
 import {
   ABIBuiltins,
   AnnotateImplicits,
@@ -156,6 +157,7 @@ function applyPasses(
     ['Rim', ReplaceIdentifierContractMemberAccess],
     ['Dus', DropUnusedSourceUnits],
     ['Cs', CairoStubProcessor],
+    ['Usw', UnsupportedWriters],
   ]);
 
   const passesInOrder: typeof ASTMapper[] = parsePassOrder(
