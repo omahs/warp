@@ -48,79 +48,18 @@ export class CairoContractWriter extends CairoASTNodeWriter {
 
     const enums = node.vEnums.map((value) => writer.write(value));
 
-    const externalFunctions = node.vFunctions
-      .filter((func) => isExternallyVisible(func))
-      .map((func) => writer.write(func));
-
-    const otherFunctions = node.vFunctions
-      .filter((func) => !isExternallyVisible(func))
-      .map((func) => writer.write(func));
-
     const events = node.vEvents.map((value) => writer.write(value));
 
-    const body = [...variables, ...enums, ...otherFunctions]
+    const functions = node.vFunctions.map((func) => writer.write(func));
+
+    const body = [...variables, ...enums, ...functions]
       .join('\n\n')
       .split('\n')
       .map((l) => (l.length > 0 ? INDENT + l : l))
       .join('\n');
-
-    const outsideNamespaceBody = [...externalFunctions]
-      .join('\n\n')
-      .split('\n')
-      .map((l) => (l.length > 0 ? INDENT + l : l))
-      .join('\n');
-
-    const storageCode = [
-      '@storage_var',
-      'func WARP_STORAGE(index: felt) -> (val: felt){',
-      '}',
-      '@storage_var',
-      'func WARP_USED_STORAGE() -> (val: felt){',
-      '}',
-      '@storage_var',
-      'func WARP_NAMEGEN() -> (name: felt){',
-      '}',
-      'func readId{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr : felt}(loc: felt) -> (val: felt){',
-      '    let (id) = WARP_STORAGE.read(loc);',
-      '    if (id == 0){',
-      '        let (id) = WARP_NAMEGEN.read();',
-      '        WARP_NAMEGEN.write(id + 1);',
-      '        WARP_STORAGE.write(loc, id + 1);',
-      '        return (id + 1,);',
-      '    }else{',
-      '        return (id,);',
-      '    }',
-      '}',
-      ...(INCLUDE_CAIRO_DUMP_FUNCTIONS
-        ? [
-            'func DUMP_WARP_STORAGE_ITER{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt, ptr: felt*){',
-            '    if (length == 0){',
-            '        return ();',
-            '    }',
-            '    let index = length - 1;',
-            '    let (read) = WARP_STORAGE.read(index);',
-            '    assert ptr[index] = read;',
-            '    DUMP_WARP_STORAGE_ITER(index, ptr);',
-            '    return ();',
-            '}',
-            '@external',
-            'func DUMP_WARP_STORAGE{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(length : felt) -> (data_len : felt, data: felt*){',
-            '    let (p: felt*) = alloc();',
-            '    DUMP_WARP_STORAGE_ITER(length, p);',
-            '    return (length, p);',
-            '}',
-          ]
-        : []),
-    ].join('\n');
 
     return [
-      [
-        documentation,
-        ...events,
-        `namespace ${node.name}{\n\n${body}\n\n}`,
-        outsideNamespaceBody,
-        storageCode,
-      ].join('\n\n'),
+      [documentation, ...events, `#[contract]\n mod ${node.name}{\n\n${body}\n\n}`].join('\n\n'),
     ];
   }
 
