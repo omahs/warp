@@ -13,7 +13,8 @@ export class CairoContractWriter extends CairoASTNodeWriter {
     }
     if (node.abstract)
       return [
-        `// This contract may be abstract, it may not implement an abstract parent's methods\n// completely or it may not invoke an inherited contract's constructor correctly.\n`,
+        `// This contract may be abstract, it may not implement an abstract parent's methods\n`,
+        `// completely or it may not invoke an inherited contract's constructor correctly.\n`,
       ];
 
     const dynamicVariables = [...node.dynamicStorageAllocations.entries()].map(

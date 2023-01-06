@@ -95,13 +95,6 @@ export class FunctionCallWriter extends CairoASTNodeWriter {
         ];
 
       case FunctionCallKind.TypeConversion: {
-        const arg = node.vArguments[0];
-        if (node.vFunctionName === 'address' && arg instanceof Literal) {
-          const val = BigInt(arg.value);
-          // Make sure literal < 2**251
-          assert(val < BigInt('0x800000000000000000000000000000000000000000000000000000000000000'));
-          return [`${args[0]}`];
-        }
         const nodeType = safeGetNodeType(node.vExpression, writer.targetCompilerVersion);
         if (
           nodeType instanceof UserDefinedType &&

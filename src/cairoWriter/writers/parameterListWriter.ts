@@ -6,6 +6,7 @@ import {
   ParameterList,
   SrcDesc,
 } from 'solc-typed-ast';
+import { TEMP_INTERFACE_SUFFIX } from '../../export';
 import { CairoDynArray, CairoType, TypeConversionContext } from '../../utils/cairoTypeSystem';
 import { safeGetNodeType } from '../../utils/nodeTypeProcessing';
 import { isExternallyVisible } from '../../utils/utils';
@@ -31,7 +32,7 @@ export class ParameterListWriter extends CairoASTNodeWriter {
       );
       if (tp instanceof CairoDynArray && node.parent instanceof FunctionDefinition) {
         return isExternallyVisible(node.parent) ||
-          node.getClosestParentByType(ContractDefinition)?.name.includes('@interface')
+          node.getClosestParentByType(ContractDefinition)?.name.includes(TEMP_INTERFACE_SUFFIX)
           ? `${value.name}_len : ${tp.vLen.toString()}, ${value.name} : ${tp.vPtr.toString()}`
           : `${value.name} : ${tp.toString()}`;
       }
