@@ -19,6 +19,8 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
     return foundImportFuncDef;
   }
 
+  // Some cases accept all functions no mater the amount of bits e.g. 'warp_int{N}_to_int{N}' | N mod 8 = 0; 8 <= N <= 256;
+  // the else block 'path+name' is to make sure that the case isn't trigged if import name isn't matched.
   switch (path + name) {
     case STARKWARE_CAIRO_COMMON_ALLOC + ALLOC:
       return createAllocImportFuncDef(node, ast);
@@ -26,6 +28,8 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createBitwiseBuiltinImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_DICT + DICT_WRITE:
       return createDictWriteImportFuncDef(node, ast);
+    case STARKWARE_CAIRO_COMMON_MATH_CMP + IS_LE_FELT:
+      return createIsLeFeltImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_UINT256 + UINT256:
       return createUint256ImportFuncDef(node, ast);
     case WARPLIB_MATHS_BYTES_ACCESS + BYTE256_AT_INDEX:
@@ -34,9 +38,14 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createWarpBytesWidenImportFuncDef(node, ast);
     case WARPLIB_MATHS_BYTES_CONVERSIONS + WARP_BYTES_WIDEN_256:
       return createWarpBytesWiden256ImportFuncDef(node, ast);
+    case WARPLIB_MATHS_EXTERNAL_INPUT_CHECK_ADDRESS + WARP_EXTERNAL_INPUT_CHECK_ADDRESS:
+      return createWarpExternalInputCheckAddressImportFuncDef(node, ast);
+    case WARPLIB_MATHS_EXTERNAL_INPUT_CHECK_BOOL + WARP_EXTERNAL_INPUT_CHECK_BOOL:
+      return createWarpExternalInputCheckBoolImportFuncDef(node, ast);
+    case WARPLIB_MATHS_EXTERNAL_INPUT_CHECK_INTS +
+      (isWarp_external_input_check_intN(name) ? name : path + name):
+      return createWarpExternalInputCheckIntNImportFuncDef(name, node, ast);
     case WARPLIB_MATHS_INT_CONVERSIONS + (isWarp_intN_to_intN(name) ? name : path + name):
-      // This case accept all functions that follow the pattern 'warp_int{N}_to_int{N}' | N mod 8 = 0; 8 <= N <= 256;
-      // the else block 'path+name' is to make sure it doesn't match
       return createWarpIntNToIntNImportFuncDef(name, node, ast);
     case WARPLIB_MATHS_INT_CONVERSIONS + WARP_UINT256:
       return createWarpUint256ImportFuncDef(node, ast);
@@ -84,9 +93,13 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
 const STARKWARE_CAIRO_COMMON_ALLOC = 'starkware.cairo.common.alloc';
 const STARKWARE_CAIRO_COMMON_CAIROBUILTINS = 'starkware.cairo.common.cairo_builtins';
 const STARKWARE_CAIRO_COMMON_DICT = 'starkware.cairo.common.dict';
+const STARKWARE_CAIRO_COMMON_MATH_CMP = 'starkware.cairo.common.math_cmp';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
 const WARPLIB_MATHS_BYTES_ACCESS = 'warplib.maths.bytes_access';
 const WARPLIB_MATHS_BYTES_CONVERSIONS = 'warplib.maths.bytes_conversions';
+const WARPLIB_MATHS_EXTERNAL_INPUT_CHECK_ADDRESS = 'warplib.maths.external_input_check_address';
+const WARPLIB_MATHS_EXTERNAL_INPUT_CHECK_BOOL = 'warplib.maths.external_input_check_bool';
+const WARPLIB_MATHS_EXTERNAL_INPUT_CHECK_INTS = 'warplib.maths.external_input_check_ints';
 const WARPLIB_MATHS_INT_CONVERSIONS = 'warplib.maths.int_conversions';
 const WARPLIB_MATHS_UTILS = 'warplib.maths.utils';
 const WARPLIB_DYNAMIC_ARRAYS_UTIL = 'warplib.dynamic_arrays_util';
@@ -100,6 +113,7 @@ const BYTE256_AT_INDEX = 'byte256_at_index';
 const DICT_WRITE = 'dict_write';
 const UINT256 = 'Uint256';
 const FELT_TO_UINT256 = 'felt_to_uint256';
+const IS_LE_FELT = 'is_le_felt';
 const NARROW_SAFE = 'narrow_safe';
 const BYTE_ARRAY_TO_FELT_VALUE = 'byte_array_to_felt_value';
 const BYTE_ARRAY_TO_UINT256_VALUE = 'byte_array_to_uint256_value';
@@ -120,6 +134,8 @@ const WARP_KECCAK = 'warp_keccak';
 const WARP_UINT256 = 'warp_uint256';
 const WARP_BYTES_WIDEN = 'warp_bytes_widen';
 const WARP_BYTES_WIDEN_256 = 'warp_bytes_widen_256';
+const WARP_EXTERNAL_INPUT_CHECK_ADDRESS = 'warp_external_input_check_address';
+const WARP_EXTERNAL_INPUT_CHECK_BOOL = 'warp_external_input_check_bool';
 
 function findExistingImport(name: string, node: SourceUnit) {
   const found = node.getChildrenBySelector(
@@ -131,11 +147,16 @@ function findExistingImport(name: string, node: SourceUnit) {
 }
 
 function isWarp_intN_to_intN(name: string) {
-  let allowedNum = '8';
-  for (let i = 2; i <= 32; i++) {
-    allowedNum += '|' + 8 * i;
-  }
-  var regex = new RegExp(`warp_int(${allowedNum})_to_int(${allowedNum})`, 'g');
+  var regex = new RegExp(`warp_int(${allBits})_to_int(${allBits})`, 'g');
+  return matchRegex(name, regex);
+}
+
+function isWarp_external_input_check_intN(name: string) {
+  var regex = new RegExp(`warp_external_input_check_int(${allBits})`, 'g');
+  return matchRegex(name, regex);
+}
+
+function matchRegex(name: string, regex: RegExp) {
   const match = name.match(regex);
   return match !== null && match[0] === name;
 }
@@ -164,6 +185,16 @@ function createDictWriteImportFuncDef(node: SourceUnit, ast: AST): CairoImportFu
   const funcName = DICT_WRITE;
   const path = STARKWARE_CAIRO_COMMON_DICT;
   const implicits = new Set<Implicits>([DICT_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createIsLeFeltImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
+  const funcName = IS_LE_FELT;
+  const path = STARKWARE_CAIRO_COMMON_MATH_CMP;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
   const params = createParameterList([], ast);
   const retParams = createParameterList([], ast);
 
@@ -209,6 +240,45 @@ function createWarpBytesWiden256ImportFuncDef(
 ): CairoImportFunctionDefinition {
   const funcName = WARP_BYTES_WIDEN_256;
   const path = WARPLIB_MATHS_BYTES_CONVERSIONS;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createWarpExternalInputCheckAddressImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = WARP_EXTERNAL_INPUT_CHECK_ADDRESS;
+  const path = WARPLIB_MATHS_EXTERNAL_INPUT_CHECK_ADDRESS;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createWarpExternalInputCheckBoolImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = WARP_EXTERNAL_INPUT_CHECK_BOOL;
+  const path = WARPLIB_MATHS_EXTERNAL_INPUT_CHECK_BOOL;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createWarpExternalInputCheckIntNImportFuncDef(
+  funcName: string,
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const path = WARPLIB_MATHS_EXTERNAL_INPUT_CHECK_INTS;
   const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
   const params = createParameterList([], ast);
   const retParams = createParameterList([], ast);
@@ -500,3 +570,6 @@ function createImportStructFuncDefinition(
   node.insertAtBeginning(funcDef);
   return funcDef;
 }
+
+const allBits =
+  '8|16|24|32|40|48|56|64|72|80|88|96|104|112|120|128|136|144|152|160|168|176|184|192|200|208|216|224|232|240|248|256';
