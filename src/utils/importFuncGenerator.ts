@@ -13,6 +13,7 @@ import {
 } from '../utils/implicits';
 import { createParameterList } from './nodeTemplates';
 import { assert } from 'console';
+import { TranspileFailedError } from './export';
 
 export function createImportFuncDefinition(path: string, name: string, node: SourceUnit, ast: AST) {
   // First check if the import was already added. If so, there's no need to add it again.
@@ -138,8 +139,10 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
     case WARPLIB_STRING_HASH + WM_STRING_HASH:
       return createWMStringHashImportFuncDef(node, ast);
     default:
-      // TODO: Throw a not matched import error
-      break;
+      throw new TranspileFailedError(
+        `'${name}' from '${path}' wasn't matched with registered imports`,
+        node,
+      );
   }
 }
 
