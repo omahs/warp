@@ -8,6 +8,7 @@ import {
   KECCAK_PTR,
   PEDERSEN_PTR,
   RANGE_CHECK_PTR,
+  SYSCALL_PTR,
   WARP_MEMORY,
 } from '../utils/implicits';
 import { createParameterList } from './nodeTemplates';
@@ -53,6 +54,8 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createUint256LeImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_UINT256 + UINT256_EQ:
       return createUint256EqImportFuncDef(node, ast);
+    case STARKWARE_STARKNET_COMMON_SYSCALLS + EMIT_EVENT:
+      return createEmitEventImportFuncDef(node, ast);
     case WARPLIB_MATHS_BYTES_ACCESS + BYTE256_AT_INDEX:
       return createByte256AtIndexImportFuncDef(node, ast);
     case WARPLIB_MATHS_BYTES_CONVERSIONS + WARP_BYTES_WIDEN:
@@ -120,8 +123,16 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createWMWrite256ImportFuncDef(node, ast);
     case WARPLIB_MEMORY + WM_WRITE_FELT:
       return createWMWriteFeltImportFuncDef(node, ast);
+    case WARPLIB_MEMORY + WM_TO_FELT_ARRAY:
+      return createWMToFeltArrayImportFuncDef(node, ast);
     case WARPLIB_KECCAK + WARP_KECCAK:
       return createWarpKeccakImportFuncDef(node, ast);
+    case WARPLIB_KECCAK + WARP_KECCAK_FELT:
+      return createWarpKeccakFeltImportFuncDef(node, ast);
+    case WARPLIB_KECCAK + PACK_BYTES_FELT:
+      return createPackBytesFeltImportFuncDef(node, ast);
+    case WARPLIB_KECCAK + FELT_ARRAY_CONCAT:
+      return createFeltArrayConcatImportFuncDef(node, ast);
     case WARPLIB_STRING_HASH + STRING_HASH:
       return createStringHashImportFuncDef(node, ast);
     case WARPLIB_STRING_HASH + WM_STRING_HASH:
@@ -140,6 +151,7 @@ const STARKWARE_CAIRO_COMMON_DICT_ACCESS = 'starkware.cairo.common.dict_access';
 const STARKWARE_CAIRO_COMMON_MATH = 'starkware.cairo.common.math';
 const STARKWARE_CAIRO_COMMON_MATH_CMP = 'starkware.cairo.common.math_cmp';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
+const STARKWARE_STARKNET_COMMON_SYSCALLS = 'starkware.cairo.common.syscalls';
 const WARPLIB_MATHS_BYTES_ACCESS = 'warplib.maths.bytes_access';
 const WARPLIB_MATHS_BYTES_CONVERSIONS = 'warplib.maths.bytes_conversions';
 const WARPLIB_MATHS_EXTERNAL_INPUT_CHECK_ADDRESS = 'warplib.maths.external_input_check_address';
@@ -191,7 +203,9 @@ const WM_READ_FELT = 'wm_read_felt';
 const WM_READ_256 = 'wm_read_256';
 const WM_WRITE_256 = 'wm_write_256';
 const WM_WRITE_FELT = 'wm_write_felt';
+const WM_TO_FELT_ARRAY = 'wm_to_felt_array';
 const WARP_KECCAK = 'warp_keccak';
+const WARP_KECCAK_FELT = 'warp_keccak_felt';
 const WARP_UINT256 = 'warp_uint256';
 const WARP_BYTES_WIDEN = 'warp_bytes_widen';
 const WARP_BYTES_WIDEN_256 = 'warp_bytes_widen_256';
@@ -203,6 +217,9 @@ const FIXED_BYTES256_TO_DYNAMIC_ARRAY = 'fixed_bytes256_to_dynamic_array';
 const STRING_HASH = 'string_hash';
 const WM_STRING_HASH = 'wm_string_hash';
 const SPLIT_FELT = 'split_felt';
+const EMIT_EVENT = 'emit_event';
+const PACK_BYTES_FELT = 'pack_bytes_felt';
+const FELT_ARRAY_CONCAT = 'felt_array_concat';
 
 function findExistingImport(name: string, node: SourceUnit) {
   const found = node.getChildrenBySelector(
@@ -366,6 +383,16 @@ function createUint256EqImportFuncDef(node: SourceUnit, ast: AST): CairoImportFu
   const funcName = UINT256_EQ;
   const path = STARKWARE_CAIRO_COMMON_UINT256;
   const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createEmitEventImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
+  const funcName = EMIT_EVENT;
+  const path = STARKWARE_STARKNET_COMMON_SYSCALLS;
+  const implicits = new Set<Implicits>([SYSCALL_PTR]);
   const params = createParameterList([], ast);
   const retParams = createParameterList([], ast);
 
@@ -775,10 +802,62 @@ function createWMWriteFeltImportFuncDef(node: SourceUnit, ast: AST): CairoImport
   return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
 }
 
+function createWMToFeltArrayImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = WM_TO_FELT_ARRAY;
+  const path = WARPLIB_MEMORY;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR, WARP_MEMORY]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
 function createWarpKeccakImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
   const funcName = WARP_KECCAK;
   const path = WARPLIB_KECCAK;
   const implicits = new Set<Implicits>([RANGE_CHECK_PTR, BITWISE_PTR, WARP_MEMORY, KECCAK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createWarpKeccakFeltImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = WARP_KECCAK_FELT;
+  const path = WARPLIB_KECCAK;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR, BITWISE_PTR, WARP_MEMORY, KECCAK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createPackBytesFeltImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = PACK_BYTES_FELT;
+  const path = WARPLIB_KECCAK;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createFeltArrayConcatImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = FELT_ARRAY_CONCAT;
+  const path = WARPLIB_KECCAK;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
   const params = createParameterList([], ast);
   const retParams = createParameterList([], ast);
 
