@@ -32,6 +32,8 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createIsLeFeltImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_UINT256 + UINT256:
       return createUint256ImportFuncDef(node, ast);
+    case STARKWARE_CAIRO_COMMON_UINT256 + UINT256_ADD:
+      return createUint256AddImportFuncDef(node, ast);
     case WARPLIB_MATHS_BYTES_ACCESS + BYTE256_AT_INDEX:
       return createByte256AtIndexImportFuncDef(node, ast);
     case WARPLIB_MATHS_BYTES_CONVERSIONS + WARP_BYTES_WIDEN:
@@ -87,6 +89,8 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createWMIndexDynImportFuncDef(node, ast);
     case WARPLIB_MEMORY + WM_NEW:
       return createWMNewImportFuncDef(node, ast);
+    case WARPLIB_MEMORY + WM_READ_ID:
+      return createWMReadIdImportFuncDef(node, ast);
     case WARPLIB_MEMORY + WM_WRITE_256:
       return createWMWrite256ImportFuncDef(node, ast);
     case WARPLIB_KECCAK + WARP_KECCAK:
@@ -120,6 +124,7 @@ const BITWISE_BUILTIN = 'BitwiseBuiltin';
 const BYTE256_AT_INDEX = 'byte256_at_index';
 const DICT_WRITE = 'dict_write';
 const UINT256 = 'Uint256';
+const UINT256_ADD = 'uint256_add';
 const FELT_TO_UINT256 = 'felt_to_uint256';
 const IS_LE_FELT = 'is_le_felt';
 const NARROW_SAFE = 'narrow_safe';
@@ -138,6 +143,7 @@ const WM_ALLOC = 'wm_alloc';
 const WM_DYN_ARRAY_LENGTH = 'wm_dyn_array_length';
 const WM_INDEX_DYN = 'wm_index_dyn';
 const WM_NEW = 'wm_new';
+const WM_READ_ID = 'wm_read_id';
 const WM_WRITE_256 = 'wm_write_256';
 const WARP_KECCAK = 'warp_keccak';
 const WARP_UINT256 = 'warp_uint256';
@@ -218,6 +224,16 @@ function createUint256ImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunc
   const path = STARKWARE_CAIRO_COMMON_UINT256;
 
   return createImportStructFuncDefinition(structName, path, ast, node);
+}
+
+function createUint256AddImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
+  const funcName = UINT256_ADD;
+  const path = STARKWARE_CAIRO_COMMON_UINT256;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
 }
 
 function createByte256AtIndexImportFuncDef(
@@ -552,6 +568,16 @@ function createWMIndexDynImportFuncDef(node: SourceUnit, ast: AST): CairoImportF
 
 function createWMNewImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
   const funcName = WM_NEW;
+  const path = WARPLIB_MEMORY;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR, WARP_MEMORY]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createWMReadIdImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
+  const funcName = WM_READ_ID;
   const path = WARPLIB_MEMORY;
   const implicits = new Set<Implicits>([RANGE_CHECK_PTR, WARP_MEMORY]);
   const params = createParameterList([], ast);
