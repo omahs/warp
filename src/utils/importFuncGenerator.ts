@@ -32,6 +32,8 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createDictReadImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_DICT_ACCESS + DICT_ACCESS:
       return createDictAccessImportFuncDef(node, ast);
+    case STARKWARE_CAIRO_COMMON_MATH_CMP + IS_LE:
+      return createIsLeImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_MATH_CMP + IS_LE_FELT:
       return createIsLeFeltImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_UINT256 + UINT256:
@@ -147,6 +149,7 @@ const UINT256_ADD = 'uint256_add';
 const UINT256_SUB = 'uint256_sud';
 const UINT256_LT = 'uint256_lt';
 const FELT_TO_UINT256 = 'felt_to_uint256';
+const IS_LE = 'is_le';
 const IS_LE_FELT = 'is_le_felt';
 const NARROW_SAFE = 'narrow_safe';
 const BYTE_ARRAY_TO_FELT_VALUE = 'byte_array_to_felt_value';
@@ -249,6 +252,16 @@ function createDictAccessImportFuncDef(node: SourceUnit, ast: AST): CairoImportF
   const path = STARKWARE_CAIRO_COMMON_DICT_ACCESS;
 
   return createImportStructFuncDefinition(structName, path, ast, node);
+}
+
+function createIsLeImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
+  const funcName = IS_LE;
+  const path = STARKWARE_CAIRO_COMMON_MATH_CMP;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
 }
 
 function createIsLeFeltImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
