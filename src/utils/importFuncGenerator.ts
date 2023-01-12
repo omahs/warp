@@ -87,6 +87,8 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createWMIndexDynImportFuncDef(node, ast);
     case WARPLIB_MEMORY + WM_NEW:
       return createWMNewImportFuncDef(node, ast);
+    case WARPLIB_MEMORY + WM_WRITE_256:
+      return createWMWrite256ImportFuncDef(node, ast);
     case WARPLIB_KECCAK + WARP_KECCAK:
       return createWarpKeccakImportFuncDef(node, ast);
     default:
@@ -136,6 +138,7 @@ const WM_ALLOC = 'wm_alloc';
 const WM_DYN_ARRAY_LENGTH = 'wm_dyn_array_length';
 const WM_INDEX_DYN = 'wm_index_dyn';
 const WM_NEW = 'wm_new';
+const WM_WRITE_256 = 'wm_write_256';
 const WARP_KECCAK = 'warp_keccak';
 const WARP_UINT256 = 'warp_uint256';
 const WARP_BYTES_WIDEN = 'warp_bytes_widen';
@@ -551,6 +554,16 @@ function createWMNewImportFuncDef(node: SourceUnit, ast: AST): CairoImportFuncti
   const funcName = WM_NEW;
   const path = WARPLIB_MEMORY;
   const implicits = new Set<Implicits>([RANGE_CHECK_PTR, WARP_MEMORY]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createWMWrite256ImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
+  const funcName = WM_WRITE_256;
+  const path = WARPLIB_MEMORY;
+  const implicits = new Set<Implicits>([WARP_MEMORY]);
   const params = createParameterList([], ast);
   const retParams = createParameterList([], ast);
 
