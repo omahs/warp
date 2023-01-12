@@ -30,6 +30,8 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createDictWriteImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_DICT + DICT_READ:
       return createDictReadImportFuncDef(node, ast);
+    case STARKWARE_CAIRO_COMMON_DICT_ACCESS + DICT_ACCESS:
+      return createDictAccessImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_MATH_CMP + IS_LE_FELT:
       return createIsLeFeltImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_UINT256 + UINT256:
@@ -111,6 +113,7 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
 const STARKWARE_CAIRO_COMMON_ALLOC = 'starkware.cairo.common.alloc';
 const STARKWARE_CAIRO_COMMON_CAIROBUILTINS = 'starkware.cairo.common.cairo_builtins';
 const STARKWARE_CAIRO_COMMON_DICT = 'starkware.cairo.common.dict';
+const STARKWARE_CAIRO_COMMON_DICT_ACCESS = 'starkware.cairo.common.dict_access';
 const STARKWARE_CAIRO_COMMON_MATH_CMP = 'starkware.cairo.common.math_cmp';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
 const WARPLIB_MATHS_BYTES_ACCESS = 'warplib.maths.bytes_access';
@@ -130,6 +133,7 @@ const BITWISE_BUILTIN = 'BitwiseBuiltin';
 const BYTE256_AT_INDEX = 'byte256_at_index';
 const DICT_READ = 'dict_read';
 const DICT_WRITE = 'dict_write';
+const DICT_ACCESS = 'DictAccess';
 const UINT256 = 'Uint256';
 const UINT256_ADD = 'uint256_add';
 const FELT_TO_UINT256 = 'felt_to_uint256';
@@ -226,6 +230,13 @@ function createDictWriteImportFuncDef(node: SourceUnit, ast: AST): CairoImportFu
   const retParams = createParameterList([], ast);
 
   return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createDictAccessImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
+  const structName = DICT_ACCESS;
+  const path = STARKWARE_CAIRO_COMMON_DICT_ACCESS;
+
+  return createImportStructFuncDefinition(structName, path, ast, node);
 }
 
 function createIsLeFeltImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
