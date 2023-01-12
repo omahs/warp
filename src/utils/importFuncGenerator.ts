@@ -38,6 +38,8 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createUint256ImportFuncDef(node, ast);
     case STARKWARE_CAIRO_COMMON_UINT256 + UINT256_ADD:
       return createUint256AddImportFuncDef(node, ast);
+    case STARKWARE_CAIRO_COMMON_UINT256 + UINT256_SUB:
+      return createUint256SubImportFuncDef(node, ast);
     case WARPLIB_MATHS_BYTES_ACCESS + BYTE256_AT_INDEX:
       return createByte256AtIndexImportFuncDef(node, ast);
     case WARPLIB_MATHS_BYTES_CONVERSIONS + WARP_BYTES_WIDEN:
@@ -136,6 +138,7 @@ const DICT_WRITE = 'dict_write';
 const DICT_ACCESS = 'DictAccess';
 const UINT256 = 'Uint256';
 const UINT256_ADD = 'uint256_add';
+const UINT256_SUB = 'uint256_sud';
 const FELT_TO_UINT256 = 'felt_to_uint256';
 const IS_LE_FELT = 'is_le_felt';
 const NARROW_SAFE = 'narrow_safe';
@@ -258,6 +261,16 @@ function createUint256ImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunc
 
 function createUint256AddImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
   const funcName = UINT256_ADD;
+  const path = STARKWARE_CAIRO_COMMON_UINT256;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createUint256SubImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
+  const funcName = UINT256_SUB;
   const path = STARKWARE_CAIRO_COMMON_UINT256;
   const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
   const params = createParameterList([], ast);
