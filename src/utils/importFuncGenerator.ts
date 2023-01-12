@@ -95,6 +95,8 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createWMDynArrayLengthImportFuncDef(node, ast);
     case WARPLIB_MEMORY + WM_INDEX_DYN:
       return createWMIndexDynImportFuncDef(node, ast);
+    case WARPLIB_MEMORY + WM_INDEX_STATIC:
+      return createWMIndexStaticImportFuncDef(node, ast);
     case WARPLIB_MEMORY + WM_NEW:
       return createWMNewImportFuncDef(node, ast);
     case WARPLIB_MEMORY + WM_READ_ID:
@@ -161,6 +163,7 @@ const MEMORY_DYN_ARRAY_COPY = 'memory_dyn_array_copy';
 const WM_ALLOC = 'wm_alloc';
 const WM_DYN_ARRAY_LENGTH = 'wm_dyn_array_length';
 const WM_INDEX_DYN = 'wm_index_dyn';
+const WM_INDEX_STATIC = 'wm_index_static';
 const WM_NEW = 'wm_new';
 const WM_READ_ID = 'wm_read_id';
 const WM_READ_FELT = 'wm_read_felt';
@@ -619,6 +622,19 @@ function createWMIndexDynImportFuncDef(node: SourceUnit, ast: AST): CairoImportF
   const funcName = WM_INDEX_DYN;
   const path = WARPLIB_MEMORY;
   const implicits = new Set<Implicits>([RANGE_CHECK_PTR, WARP_MEMORY]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createWMIndexStaticImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = WM_INDEX_STATIC;
+  const path = WARPLIB_MEMORY;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
   const params = createParameterList([], ast);
   const retParams = createParameterList([], ast);
 
