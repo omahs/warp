@@ -30,6 +30,14 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createUint256ImportFuncDef(node, ast);
     case WARPLIB_MATHS_BYTES_ACCESS + BYTE256_AT_INDEX:
       return createByte256AtIndexImportFuncDef(node, ast);
+    case WARPLIB_MATHS_BYTES_CONVERSIONS + WARP_BYTES_WIDEN:
+      return createWarpBytesWidenImportFuncDef(node, ast);
+    case WARPLIB_MATHS_BYTES_CONVERSIONS + WARP_BYTES_WIDEN_256:
+      return createWarpBytesWiden256ImportFuncDef(node, ast);
+    case WARPLIB_MATHS_INT_CONVERSIONS + (isWarp_intN_to_intN(name) ? name : path + name):
+      // This case accept all functions that follow the pattern 'warp_int{N}_to_int{N}' | N mod 8 = 0; 8 <= N <= 256;
+      // the else block 'path+name' is to make sure it doesn't match
+      return createWarpIntNToIntNImportFuncDef(name, node, ast);
     case WARPLIB_MATHS_INT_CONVERSIONS + WARP_UINT256:
       return createWarpUint256ImportFuncDef(node, ast);
     case WARPLIB_MATHS_UTILS + FELT_TO_UINT256:
@@ -78,6 +86,7 @@ const STARKWARE_CAIRO_COMMON_CAIROBUILTINS = 'starkware.cairo.common.cairo_built
 const STARKWARE_CAIRO_COMMON_DICT = 'starkware.cairo.common.dict';
 const STARKWARE_CAIRO_COMMON_UINT256 = 'starkware.cairo.common.uint256';
 const WARPLIB_MATHS_BYTES_ACCESS = 'warplib.maths.bytes_access';
+const WARPLIB_MATHS_BYTES_CONVERSIONS = 'warplib.maths.bytes_conversions';
 const WARPLIB_MATHS_INT_CONVERSIONS = 'warplib.maths.int_conversions';
 const WARPLIB_MATHS_UTILS = 'warplib.maths.utils';
 const WARPLIB_DYNAMIC_ARRAYS_UTIL = 'warplib.dynamic_arrays_util';
@@ -109,6 +118,8 @@ const WM_INDEX_DYN = 'wm_index_dyn';
 const WM_NEW = 'wm_new';
 const WARP_KECCAK = 'warp_keccak';
 const WARP_UINT256 = 'warp_uint256';
+const WARP_BYTES_WIDEN = 'warp_bytes_widen';
+const WARP_BYTES_WIDEN_256 = 'warp_bytes_widen_256';
 
 function findExistingImport(name: string, node: SourceUnit) {
   const found = node.getChildrenBySelector(
@@ -117,6 +128,16 @@ function findExistingImport(name: string, node: SourceUnit) {
   assert(found.length < 2, `Were found more than 1 import functions with name: ${name}.`);
 
   return found.length === 1 ? (found[0] as CairoImportFunctionDefinition) : undefined;
+}
+
+function isWarp_intN_to_intN(name: string) {
+  let allowedNum = '8';
+  for (let i = 2; i <= 32; i++) {
+    allowedNum += '|' + 8 * i;
+  }
+  var regex = new RegExp(`warp_int(${allowedNum})_to_int(${allowedNum})`, 'g');
+  const match = name.match(regex);
+  return match !== null && match[0] === name;
 }
 
 function createAllocImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
@@ -163,6 +184,49 @@ function createByte256AtIndexImportFuncDef(
   const funcName = BYTE256_AT_INDEX;
   const path = WARPLIB_MATHS_BYTES_ACCESS;
   const implicits = new Set<Implicits>([BITWISE_PTR, RANGE_CHECK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createWarpBytesWidenImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = WARP_BYTES_WIDEN;
+  const path = WARPLIB_MATHS_BYTES_CONVERSIONS;
+  const implicits = new Set<Implicits>([]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createWarpBytesWiden256ImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = WARP_BYTES_WIDEN_256;
+  const path = WARPLIB_MATHS_BYTES_CONVERSIONS;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createWarpIntNToIntNImportFuncDef(
+  funcName: string,
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const path = WARPLIB_MATHS_INT_CONVERSIONS;
+  const match = funcName.match(/warp_int[\d]+_to_int256+/g); // Those functions also use range_check_ptr as implicit
+  const implicits =
+    match !== null
+      ? new Set<Implicits>([RANGE_CHECK_PTR, BITWISE_PTR])
+      : new Set<Implicits>([BITWISE_PTR]);
   const params = createParameterList([], ast);
   const retParams = createParameterList([], ast);
 
