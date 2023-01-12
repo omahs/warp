@@ -73,6 +73,12 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createFeltArray2WarpMemoryArrayImportFuncDef(node, ast);
     case WARPLIB_DYNAMIC_ARRAYS_UTIL + MEMORY_DYN_ARRAY_COPY:
       return createMemoryDynArrayCopyImportFuncDef(node, ast);
+    case WARPLIB_DYNAMIC_ARRAYS_UTIL + DYNAMIC_ARRAY_COPY_FELT:
+      return createDynamicArrayCopyFeltImportFuncDef(node, ast);
+    case WARPLIB_DYNAMIC_ARRAYS_UTIL + FIXED_BYTES_TO_DYNAMIC_ARRAY:
+      return createFixedBytesToDynamicArrayImportFuncDef(node, ast);
+    case WARPLIB_DYNAMIC_ARRAYS_UTIL + FIXED_BYTES256_TO_DYNAMIC_ARRAY:
+      return createFixedBytes256ToDynamicArrayImportFuncDef(node, ast);
     case WARPLIB_MEMORY + WM_ALLOC:
       return createWMAllocImportFuncDef(node, ast);
     case WARPLIB_MEMORY + WM_DYN_ARRAY_LENGTH:
@@ -136,6 +142,9 @@ const WARP_BYTES_WIDEN = 'warp_bytes_widen';
 const WARP_BYTES_WIDEN_256 = 'warp_bytes_widen_256';
 const WARP_EXTERNAL_INPUT_CHECK_ADDRESS = 'warp_external_input_check_address';
 const WARP_EXTERNAL_INPUT_CHECK_BOOL = 'warp_external_input_check_bool';
+const DYNAMIC_ARRAY_COPY_FELT = 'dynamic_array_copy_felt';
+const FIXED_BYTES_TO_DYNAMIC_ARRAY = 'fixed_bytes_to_dynamic_array';
+const FIXED_BYTES256_TO_DYNAMIC_ARRAY = 'fixed_bytes256_to_dynamic_array';
 
 function findExistingImport(name: string, node: SourceUnit) {
   const found = node.getChildrenBySelector(
@@ -458,6 +467,45 @@ function createMemoryDynArrayCopyImportFuncDef(
   ast: AST,
 ): CairoImportFunctionDefinition {
   const funcName = MEMORY_DYN_ARRAY_COPY;
+  const path = WARPLIB_DYNAMIC_ARRAYS_UTIL;
+  const implicits = new Set<Implicits>([BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createDynamicArrayCopyFeltImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = DYNAMIC_ARRAY_COPY_FELT;
+  const path = WARPLIB_DYNAMIC_ARRAYS_UTIL;
+  const implicits = new Set<Implicits>([RANGE_CHECK_PTR, WARP_MEMORY]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createFixedBytesToDynamicArrayImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = FIXED_BYTES_TO_DYNAMIC_ARRAY;
+  const path = WARPLIB_DYNAMIC_ARRAYS_UTIL;
+  const implicits = new Set<Implicits>([BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createFixedBytes256ToDynamicArrayImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = FIXED_BYTES256_TO_DYNAMIC_ARRAY;
   const path = WARPLIB_DYNAMIC_ARRAYS_UTIL;
   const implicits = new Set<Implicits>([BITWISE_PTR, RANGE_CHECK_PTR, WARP_MEMORY]);
   const params = createParameterList([], ast);
