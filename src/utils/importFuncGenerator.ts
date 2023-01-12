@@ -6,6 +6,7 @@ import {
   DICT_PTR,
   Implicits,
   KECCAK_PTR,
+  PEDERSEN_PTR,
   RANGE_CHECK_PTR,
   WARP_MEMORY,
 } from '../utils/implicits';
@@ -115,6 +116,10 @@ export function createImportFuncDefinition(path: string, name: string, node: Sou
       return createWMWriteFeltImportFuncDef(node, ast);
     case WARPLIB_KECCAK + WARP_KECCAK:
       return createWarpKeccakImportFuncDef(node, ast);
+    case WARPLIB_STRING_HASH + STRING_HASH:
+      return createStringHashImportFuncDef(node, ast);
+    case WARPLIB_STRING_HASH + WM_STRING_HASH:
+      return createWMStringHashImportFuncDef(node, ast);
     default:
       // TODO: Throw a not matched import error
       break;
@@ -138,6 +143,7 @@ const WARPLIB_MATHS_UTILS = 'warplib.maths.utils';
 const WARPLIB_DYNAMIC_ARRAYS_UTIL = 'warplib.dynamic_arrays_util';
 const WARPLIB_MEMORY = 'warplib.memory';
 const WARPLIB_KECCAK = 'warplib.keccak';
+const WARPLIB_STRING_HASH = 'warplib.string_hash';
 
 // Functions-Structs names to import
 const ALLOC = 'alloc';
@@ -185,6 +191,8 @@ const WARP_EXTERNAL_INPUT_CHECK_BOOL = 'warp_external_input_check_bool';
 const DYNAMIC_ARRAY_COPY_FELT = 'dynamic_array_copy_felt';
 const FIXED_BYTES_TO_DYNAMIC_ARRAY = 'fixed_bytes_to_dynamic_array';
 const FIXED_BYTES256_TO_DYNAMIC_ARRAY = 'fixed_bytes256_to_dynamic_array';
+const STRING_HASH = 'string_hash';
+const WM_STRING_HASH = 'wm_string_hash';
 
 function findExistingImport(name: string, node: SourceUnit) {
   const found = node.getChildrenBySelector(
@@ -731,6 +739,29 @@ function createWarpKeccakImportFuncDef(node: SourceUnit, ast: AST): CairoImportF
   const funcName = WARP_KECCAK;
   const path = WARPLIB_KECCAK;
   const implicits = new Set<Implicits>([RANGE_CHECK_PTR, BITWISE_PTR, WARP_MEMORY, KECCAK_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createStringHashImportFuncDef(node: SourceUnit, ast: AST): CairoImportFunctionDefinition {
+  const funcName = STRING_HASH;
+  const path = WARPLIB_STRING_HASH;
+  const implicits = new Set<Implicits>([PEDERSEN_PTR]);
+  const params = createParameterList([], ast);
+  const retParams = createParameterList([], ast);
+
+  return createImportFuncFuncDefinition(funcName, path, implicits, params, retParams, ast, node);
+}
+
+function createWMStringHashImportFuncDef(
+  node: SourceUnit,
+  ast: AST,
+): CairoImportFunctionDefinition {
+  const funcName = WM_STRING_HASH;
+  const path = WARPLIB_STRING_HASH;
+  const implicits = new Set<Implicits>([PEDERSEN_PTR, RANGE_CHECK_PTR]);
   const params = createParameterList([], ast);
   const retParams = createParameterList([], ast);
 
